@@ -1,0 +1,80 @@
+//
+//  ScheduleViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/31.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "ScheduleViewController.h"
+#import "EventKitDataSource.h"
+#import "Kal.h"
+#import "NSDate+Convenience.h"
+#import "TabBarViewController.h"
+@interface ScheduleViewController () <UITableViewDelegate, KalViewControllerDelegate>
+{
+    KalViewController *kal;
+//    id dataSource;
+}
+@end
+
+@implementation ScheduleViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"我的日程"];
+    [self addBackButt];
+    [self creatUIItem];
+}
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [(TabBarViewController*)self.tabBarController  tabbarImageView].hidden=YES;
+}
+- (void)viewDidLayoutSubviews {
+    kal = [[KalViewController alloc] initWithSelectionMode:KalSelectionModeSingle];
+    kal.selectedDate = [NSDate dateStartOfDay:[[NSDate date] offsetDay:1]];
+    kal.selectedDelegate = self;
+//    kal.delegate = self;
+//    dataSource = [[EventKitDataSource alloc] init];
+//    kal.dataSource = dataSource;
+    kal.minAvailableDate = [NSDate dateStartOfDay:[[NSDate date] offsetDay:0]];
+    kal.maxAVailableDate = [kal.minAvailableDate offsetDay:MAXFLOAT];
+//    [self.view addSubview:kal.view];
+    UIView *contentView = [[UIView alloc] initWithFrame:CGRectMake(10, 60, kSCREEN_WIDTH - 20, 308)];
+    [contentView addSubview:kal.view];
+    [self.view addSubview:contentView];
+}
+-(void)creatUIItem
+{
+    UIImageView* OneButtImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    OneButtImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:OneButtImageView];
+    OneButtImageView.userInteractionEnabled=YES;
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(kSCREEN_WIDTH/2-20, 20, 40, 40);
+    [itemButt setImage:[UIImage imageNamed:@"0_219"] forState:UIControlStateNormal];
+    [itemButt setImage:[UIImage imageNamed:@""] forState:UIControlStateSelected];
+    [itemButt addTarget:self action:@selector(settingTimeAction) forControlEvents:UIControlEventTouchUpInside];
+    [OneButtImageView addSubview:itemButt];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(kSCREEN_WIDTH/2-70, 60, 140, 20)];
+    titleLabel.text=@"设置预约时间";
+    titleLabel.textColor=[UIColor whiteColor];
+    titleLabel.textAlignment=NSTextAlignmentCenter;
+    titleLabel.font=[UIFont systemFontOfSize:10];
+    [OneButtImageView addSubview:titleLabel];
+}
+-(void)settingTimeAction
+{
+    
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)selectedData:(NSDate *)date {
+    NSLog(@"dasfdsafsdafsadf----%@", date);
+}
+
+@end

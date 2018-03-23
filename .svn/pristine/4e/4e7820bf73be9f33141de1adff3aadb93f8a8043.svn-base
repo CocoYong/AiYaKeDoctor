@@ -1,0 +1,25 @@
+//
+//  MyEvaluatPatientCell.m
+//  Doctor
+//
+//  Created by MrZhang on 15/6/23.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "MyEvaluatPatientCell.h"
+#import <QuartzCore/QuartzCore.h>
+@implementation MyEvaluatPatientCell
+
+- (void)awakeFromNib {
+    self.backView.layer.cornerRadius=5.0f;
+    self.backView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    self.backView.layer.borderWidth=1.0f;
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

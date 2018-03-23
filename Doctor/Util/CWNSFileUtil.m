@@ -1,0 +1,199 @@
+//
+//  CWNSFileUtil.m
+//
+//  Created by cuiwei on 12-7-2.
+//  Copyright (c) 2012年 __MyCompanyName__. All rights reserved.
+//
+
+#import "CWNSFileUtil.h"
+#import "CommonCrypto/CommonDigest.h"
+#define ZY_COLOR(RED, GREEN, BLUE, ALPHA)	[UIColor colorWithRed:RED green:GREEN blue:BLUE alpha:ALPHA]
+@implementation CWNSFileUtil
+
++ (id)sharedInstance
+{
+    static CWNSFileUtil * _sharedInstance;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedInstance = [[CWNSFileUtil alloc] init];
+    });
+    return _sharedInstance;
+}
+
+#pragma mark - 设置用户标准文件数据
+- (void) setUserDefaults:(id) object key:(NSString*)key
+{
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    @autoreleasepool {
+        if ([object isKindOfClass:[NSArray class]] || [object isKindOfClass:[NSMutableArray class]]) {
+            for (NSInteger i = 0; i < [object count]; i++) {
+                NSData *udObject = [NSKeyedArchiver archivedDataWithRootObject:[object objectAtIndex:i]];
+                [userDefaults setObject:udObject forKey:[NSString stringWithFormat:@"%@%li", key, (long)i]];
+            }
+        }
+    }
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+#pragma mark - 获取用户标准文件数据
+- (id)getUserDefaultsForKey:(NSString*)key
+{
+    id object = [[NSUserDefaults standardUserDefaults] objectForKey:key];
+    return [NSKeyedUnarchiver unarchiveObjectWithData:object];
+}
+
+- (id)getUserDefaultsArrayForKey:(NSString*)key
+{
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSMutableArray *result = [[NSMutableArray alloc] init];
+    @autoreleasepool {
+        for (NSInteger i = 0; ; i++) {
+            id tmpObj = [userDefaults objectForKey:[NSString stringWithFormat:@"%@%li", key, (long)i]];
+            if (!tmpObj) {
+                return result;
+            }
+            [result addObject:[NSKeyedUnarchiver unarchiveObjectWithData:tmpObj]];
+        }
+    }
+}
+
+- (BOOL)setCustomModelToUserDefaults:(id)object withKey:(NSString *)key
+{
+    NSUserDefaults *tmpRef = [NSUserDefaults standardUserDefaults];
+    NSData *archiveObject = [NSKeyedArchiver archivedDataWithRootObject:object];
+    [tmpRef setObject:archiveObject forKey:key];
+    return [tmpRef synchronize];
+}
+
+- (id)getCustomModelFromUserDefatulesWithKey:(NSString *)key
+{
+    NSData *tmpData = [[NSUserDefaults standardUserDefaults] objectForKey:key];  
+    id result = [NSKeyedUnarchiver unarchiveObjectWithData:tmpData];
+    return result;
+}
+
+- (BOOL)setNSModelToUserDefaults:(id)object withKey:(NSString *)key
+{
+    [[NSUserDefaults standardUserDefaults] setObject:object forKey:key];
+    return [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (id)getNSModelFromUserDefaultsWithKey:(NSString *)key
+{
+    return [[NSUserDefaults standardUserDefaults] objectForKey:key];
+}
++ (UIColor *) colorWithHexString: (NSString *) stringToConvert
+{
+    NSString *cString = [[stringToConvert stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] uppercaseString];
+    
+    // String should be 6 or 8 characters
+    //if ([cString length] < 6) return DEFAULT_VOID_COLOR;
+    
+    // strip 0X if it appears
+    if ([cString hasPrefix:@"0X"]) cString = [cString substringFromIndex:2];
+    if ([cString hasPrefix:@"#"]) cString = [cString substringFromIndex:1];
+    //if ([cString length] != 6) return DEFAULT_VOID_COLOR;
+    // Separate into r, g, b substrings
+    NSRange range;
+    range.location = 0;
+    range.length = 2;
+    NSString *rString = [cString substringWithRange:range];
+    
+    range.location = 2;
+    NSString *gString = [cString substringWithRange:range];
+    
+    range.location = 4;
+    NSString *bString = [cString substringWithRange:range];
+    
+    // Scan values
+    unsigned int r, g, b;
+    [[NSScanner scannerWithString:rString] scanHexInt:&r];
+    [[NSScanner scannerWithString:gString] scanHexInt:&g];
+    [[NSScanner scannerWithString:bString] scanHexInt:&b];
+    //NSLog(@"%f:::%f:::%f",((float) r / 255.0f),((float) g / 255.0f),((float) b / 255.0f));
+    
+    return ZY_COLOR(((float) r / 255.0f),((float) g / 255.0f),((float) b / 255.0f), 1);
+}
++(UIImage *) imageCompressForSize:(UIImage *)sourceImage targetSize:(CGSize)size{
+    UIImage *newImage = nil;
+    CGSize imageSize = sourceImage.size;
+    CGFloat width = imageSize.width;
+    CGFloat height = imageSize.height;
+    CGFloat targetWidth = size.width;
+    CGFloat targetHeight = size.height;
+    CGFloat scaleFactor = 0.0;
+    CGFloat scaledWidth = targetWidth;
+    CGFloat scaledHeight = targetHeight;
+    CGPoint thumbnailPoint = CGPointMake(0.0, 0.0);
+    if(CGSizeEqualToSize(imageSize, size) == NO){
+        CGFloat widthFactor = targetWidth / width;
+        CGFloat heightFactor = targetHeight / height;
+        if(widthFactor > heightFactor){
+            scaleFactor = widthFactor;
+        }
+        else{
+            scaleFactor = heightFactor;
+        }
+        scaledWidth = width * scaleFactor;
+        scaledHeight = height * scaleFactor;
+        if(widthFactor > heightFactor){
+            thumbnailPoint.y = (targetHeight - scaledHeight) * 0.5;
+        }else if(widthFactor < heightFactor){
+            thumbnailPoint.x = (targetWidth - scaledWidth) * 0.5;
+        }
+    }
+    
+    UIGraphicsBeginImageContext(size);
+    
+    CGRect thumbnailRect = CGRectZero;
+    thumbnailRect.origin = thumbnailPoint;
+    thumbnailRect.size.width = scaledWidth;
+    thumbnailRect.size.height = scaledHeight;
+    [sourceImage drawInRect:thumbnailRect];
+    newImage = UIGraphicsGetImageFromCurrentImageContext();
+    
+    if(newImage == nil){
+        NSLog(@"scale image fail");
+    }
+    
+    UIGraphicsEndImageContext();
+    return newImage;
+}
++ (BOOL) imageHasAlpha: (UIImage *) image
+{
+    CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image.CGImage);
+    return (alpha == kCGImageAlphaFirst ||
+            alpha == kCGImageAlphaLast ||
+            alpha == kCGImageAlphaPremultipliedFirst ||
+            alpha == kCGImageAlphaPremultipliedLast);
+}
++ (NSData *) image2DataURL: (UIImage *) image
+{
+    NSData *imageData = nil;
+    //    NSString *mimeType = nil;
+    
+    if ([self imageHasAlpha: image]) {
+        imageData = UIImagePNGRepresentation(image);
+        //        mimeType = @"image/png";
+    } else {
+        imageData = UIImageJPEGRepresentation(image, 1.0f);
+        //        mimeType = @"image/jpeg";
+    }
+    
+    return imageData;
+    
+}
++(NSString *) md5: (NSString *) inPutText
+{
+    const char *cStr = [inPutText UTF8String];
+    unsigned char result[CC_MD5_DIGEST_LENGTH];
+    CC_MD5(cStr, strlen(cStr), result);
+    
+    return [[NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+             result[0], result[1], result[2], result[3],
+             result[4], result[5], result[6], result[7],
+             result[8], result[9], result[10], result[11],
+             result[12], result[13], result[14], result[15]
+             ] lowercaseString];
+}
+@end

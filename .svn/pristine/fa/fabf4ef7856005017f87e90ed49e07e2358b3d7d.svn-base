@@ -1,0 +1,442 @@
+//
+//  EditDoctorInfoController.m
+//  YSProject
+//
+//  Created by MrZhang on 15/6/15.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "EditDoctorInfoController.h"
+#import "UIImageView+WebCache.h"
+#import "PhotoLibaryViewController.h"
+#import "SDWebImageDownloader.h"
+#import "UserModel.h"
+@interface EditDoctorInfoController ()<UIImagePickerControllerDelegate,UINavigationControllerDelegate,UITextFieldDelegate,UITextViewDelegate>
+{
+    UserModel *userModel;
+    CWHttpRequest *request;
+    UIView *grayWindow;
+    UIView *popUpWindow;
+}
+@property (weak, nonatomic) IBOutlet UITableView *baseTable;
+@property (strong,nonatomic) UITextView *contentView;
+@property (strong,nonatomic) UITextField *telField;
+@property (strong,nonatomic) UITextField *companyField;
+@property (strong,nonatomic) UITextField *areaField;
+@property (strong,nonatomic) UITextField *addressField;
+@end
+
+@implementation EditDoctorInfoController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"编辑医师简介"];
+    [self addBackButt];
+    [self creatUIItem];
+    self.edgesForExtendedLayout=NO;
+//    NSDictionary *userDic=(NSDictionary*)[[CWNSFileUtil sharedInstance]getNSModelFromUserDefaultsWithKey:@"userData"];
+//    dataDic=[userDic objectForKey:@"data"];
+    userModel=[UserManager currentUserManager].user;
+    
+}
+#pragma mark------dataReqest------
+- (void)updateUserInfo{
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+       NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary = @{@"company":_companyField.text,@"tel":_telField.text,@"area3": _areaField.text,@"address":_addressField.text,@"content":_contentView.text,@"SessionID":sessionID};
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, EditUserInfo] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            NSLog(@"服务项目接口成功%@", responseObject);
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+           [UserManager currentUserManager].sessionID=[responseObject objectForKey:@"SessionID"];
+            if ([code integerValue]==0) {
+                [SVProgressHUD showSuccessWithStatus:@"修改成功"];
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"服务项目接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+#pragma mark----tableViewDelegate-------
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 13;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row==5) {
+        return 80;
+    }
+    else if (indexPath.row==12) {
+        return 90;
+    }else
+    {
+     return 44;
+    }
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *reuseIdentifier=@"cellIdentifier";
+    UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    if (!cell) {
+        cell=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+    }else
+    {
+        for (id view in cell.contentView.subviews) {
+            [view removeFromSuperview];
+        }
+    }
+    cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    [self configerTableViewCell:cell withIndexPath:indexPath];
+    return cell;
+}
+-(void)configerTableViewCell:(UITableViewCell*)cell withIndexPath:(NSIndexPath*)indexPath
+{
+    switch (indexPath.row) {
+        case 0:
+        {
+            cell.textLabel.text=[NSString stringWithFormat:@"真实姓名:%@",userModel.name];
+        }
+        break;
+        case 1:
+            if ([userModel.sex isEqualToString:@"0"]) {
+                cell.textLabel.text=[NSString stringWithFormat:@"性别:%@",@"女"];
+            }else
+            {
+                cell.textLabel.text=[NSString stringWithFormat:@"性别:%@",@"男"];
+            }
+            break;
+        case 2:
+            cell.textLabel.text=[NSString stringWithFormat:@"医师职业证书号:%@",userModel.certCode];
+            break;
+        case 3:
+            cell.textLabel.text=[NSString stringWithFormat:@"职称:%@",userModel.titleName];
+            break;
+        case 4:
+            cell.textLabel.text=[NSString stringWithFormat:@"医师职业证书照片:"];
+            break;
+        case 5:
+        {
+            NSArray *licenseArray=userModel.licenseList;
+            float x = 20;
+            float y = 0;
+            float imageW = 60;
+            float offW= 10;
+            UIButton *addButton=[UIButton buttonWithType:UIButtonTypeCustom];
+            addButton.frame=CGRectMake(10, 0, imageW, imageW);
+            [addButton setImage:[UIImage imageNamed:@"0_395"] forState:UIControlStateNormal];
+            [addButton addTarget:self action:@selector(addImageFromCamera) forControlEvents:UIControlEventTouchUpInside];
+            [cell.contentView addSubview:addButton];
+            if ([licenseArray count] >= 5) {
+                addButton.hidden = YES;
+            }else{
+               addButton.hidden = NO;
+                
+            }
+            if ([licenseArray count]==0) {
+              addButton.frame = CGRectMake( x, y  , imageW, imageW);
+            }
+            if ([licenseArray count]>=4) {
+                cell.frame=CGRectMake(0, 0, kSCREEN_WIDTH, imageW+imageW+offW);
+            }else{
+                cell.frame=CGRectMake(0, 0, kSCREEN_WIDTH, imageW+offW);
+            }
+            for (int i=0;i <[licenseArray count]; i++) {
+                UIButton *imageBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+                imageBtn.tag = i;
+                [imageBtn addTarget:self action:@selector(goToMangePicView:) forControlEvents:UIControlEventTouchUpInside];
+                imageBtn.frame = CGRectMake(i%4*(offW+imageW) + x, y + floor(i/4)*(offW+imageW) , imageW, imageW);
+                [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:userModel.picUrl] options:SDWebImageDownloaderLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+                    NSLog(@"receivedSize===%ld,expectedSize===%ld",(long)receivedSize,(long)expectedSize);
+                } completed:^(UIImage *image, NSData *data, NSError *error, BOOL finished) {
+                    [imageBtn setImage:image forState:UIControlStateNormal];
+                }];
+                [cell.contentView addSubview:imageBtn];
+                if (i == [licenseArray count] -1) {
+                    int j = i+1;
+                    addButton.frame = CGRectMake(j%4*(offW+imageW) + x, y + floor(j/4)*(offW+imageW) , imageW, imageW);
+                }
+            }
+        }
+            break;
+        case 6:
+        {
+            UIImageView *backImageView=[[UIImageView alloc]initWithFrame:CGRectMake(10, 5, kSCREEN_WIDTH-20, 34)];
+            backImageView.image=[UIImage imageNamed:@"textFieldBg"];
+            backImageView.userInteractionEnabled=YES;
+            [cell.contentView addSubview:backImageView];
+            
+            UITextField *inputField=[[UITextField alloc]initWithFrame:CGRectMake(65, 4, 200, 26)];
+            [backImageView addSubview:inputField];
+            inputField.enabled=NO;
+            UILabel *titleLabl=[[UILabel alloc]initWithFrame:CGRectMake(10, 4, 60, 26)];
+            titleLabl.textAlignment=NSTextAlignmentLeft;
+            [backImageView addSubview:titleLabl];
+            titleLabl.text=[NSString stringWithFormat:@"手机号:"];
+            inputField.text=userModel.tel;
+            
+        }
+            break;
+        case 7:
+        {
+            UIImageView *backImageView=[[UIImageView alloc]initWithFrame:CGRectMake(10, 5, kSCREEN_WIDTH-20, 34)];
+            backImageView.image=[UIImage imageNamed:@"textFieldBg"];
+            backImageView.userInteractionEnabled=YES;
+            [cell.contentView addSubview:backImageView];
+            _companyField=[[UITextField alloc]initWithFrame:CGRectMake(85, 4, 200, 26)];
+            [backImageView addSubview:_companyField];
+            _companyField.delegate=self;
+            UILabel *titleLabl=[[UILabel alloc]initWithFrame:CGRectMake(10, 4, 80, 26)];
+            titleLabl.textAlignment=NSTextAlignmentLeft;
+            [backImageView addSubview:titleLabl];
+            titleLabl.text=[NSString stringWithFormat:@"门诊名称:"];
+            _companyField.text=userModel.company;
+        }
+            break;
+        case 8:
+        {
+            UIImageView *backImageView=[[UIImageView alloc]initWithFrame:CGRectMake(10, 5, kSCREEN_WIDTH-20, 34)];
+            backImageView.image=[UIImage imageNamed:@"textFieldBg"];
+            backImageView.userInteractionEnabled=YES;
+            [cell.contentView addSubview:backImageView];
+            
+            _telField=[[UITextField alloc]initWithFrame:CGRectMake(85, 4, 200, 26)];
+            [backImageView addSubview:_telField];
+            _telField.delegate=self;
+            UILabel *titleLabl=[[UILabel alloc]initWithFrame:CGRectMake(10, 4, 80, 26)];
+            titleLabl.textAlignment=NSTextAlignmentLeft;
+            [backImageView addSubview:titleLabl];
+            titleLabl.text=[NSString stringWithFormat:@"门诊电话:"];
+            _telField.text=userModel.tel;
+        }
+        
+            break;
+        case 9:
+        {
+            UIImageView *backImageView=[[UIImageView alloc]initWithFrame:CGRectMake(10, 5, kSCREEN_WIDTH-20, 34)];
+            backImageView.image=[UIImage imageNamed:@"textFieldBg"];
+            backImageView.userInteractionEnabled=YES;
+            [cell.contentView addSubview:backImageView];
+            
+            _areaField=[[UITextField alloc]initWithFrame:CGRectMake(85, 4, 200, 26)];
+            [backImageView addSubview:_areaField];
+            _areaField.delegate=self;
+            UILabel *titleLabl=[[UILabel alloc]initWithFrame:CGRectMake(10, 4, 80, 26)];
+            titleLabl.textAlignment=NSTextAlignmentLeft;
+            [backImageView addSubview:titleLabl];
+            titleLabl.text=[NSString stringWithFormat:@"所在地区:"];
+            _areaField.text=userModel.area3;
+        }
+         
+            break;
+        case 10:
+        {
+            UIImageView *backImageView=[[UIImageView alloc]initWithFrame:CGRectMake(10, 5, kSCREEN_WIDTH-20, 34)];
+            backImageView.image=[UIImage imageNamed:@"textFieldBg"];
+            backImageView.userInteractionEnabled=YES;
+            [cell.contentView addSubview:backImageView];
+            cell.textLabel.text=nil;
+            _addressField=[[UITextField alloc]initWithFrame:CGRectMake(85, 4, 200, 26)];
+            [backImageView addSubview:_addressField];
+            _addressField.delegate=self;
+            UILabel *titleLabl=[[UILabel alloc]initWithFrame:CGRectMake(10, 4, 80, 26)];
+            titleLabl.textAlignment=NSTextAlignmentLeft;
+            [backImageView addSubview:titleLabl];
+            titleLabl.text=[NSString stringWithFormat:@"门诊地址:"];
+            _addressField.text=userModel.address;
+        }
+            break;
+        case 11:
+            cell.textLabel.text=[NSString stringWithFormat:@"医生简介:"];
+            break;
+        case 12:
+        {
+            cell.textLabel.text=nil;
+            _contentView=[[UITextView  alloc]initWithFrame:CGRectMake(10, 2, kSCREEN_WIDTH-20, 80)];
+            _contentView.delegate=self;
+            _contentView.text=userModel.content;
+            _contentView.layer.cornerRadius=5.0f;
+            _contentView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+            _contentView.layer.borderWidth=1.0f;
+            [cell.contentView addSubview:_contentView];
+        }
+            break;
+        default:
+            break;
+    }
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [self.view endEditing:YES];
+    if (self.view.frame.origin.y!=0) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.view.frame=CGRectMake(0, 0, kSCREEN_WIDTH, kSCREEN_HEIGHT);
+        }];
+    }
+}
+-(void)addImageFromCamera
+{
+    grayWindow=[[UIView alloc]initWithFrame:[UIScreen mainScreen].bounds];
+    grayWindow.backgroundColor=[UIColor lightGrayColor];
+    grayWindow.alpha=0.5f;
+    [self.view addSubview:grayWindow];
+    
+    popUpWindow=[[UIView alloc]initWithFrame:CGRectMake(30, self.view.center.y-65, kSCREEN_WIDTH-60, 130)];
+    popUpWindow.backgroundColor=[UIColor whiteColor];
+    popUpWindow.layer.cornerRadius=5.0f;
+    [self.view addSubview:popUpWindow];
+   
+    
+    UIButton *cancelButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    cancelButt.frame=CGRectMake(popUpWindow.frame.size.width-40, 0, 40, 40);
+    [cancelButt setImage:[UIImage imageNamed:@"0_373"] forState:UIControlStateNormal];
+    [cancelButt addTarget:self action:@selector(dismissPopWindow) forControlEvents:UIControlEventTouchUpInside];
+    [popUpWindow addSubview:cancelButt];
+    
+    UIButton *takePhoto=[UIButton buttonWithType:UIButtonTypeCustom];
+    takePhoto.frame=CGRectMake((popUpWindow.frame.size.width-160)/3, 10, 80, 80);
+    [takePhoto setImage:[UIImage imageNamed:@"0_387"] forState:UIControlStateNormal];
+    [takePhoto addTarget:self action:@selector(takePicture) forControlEvents:UIControlEventTouchUpInside];
+    [popUpWindow addSubview:takePhoto];
+    
+    UIButton *photoLib=[UIButton buttonWithType:UIButtonTypeCustom];
+    photoLib.frame=CGRectMake((popUpWindow.frame.size.width-160)*2/3+80, 10, 80, 80);
+    [photoLib addTarget:self action:@selector(goPhotoLibary) forControlEvents:UIControlEventTouchUpInside];
+    [photoLib setImage:[UIImage imageNamed:@"0_389"] forState:UIControlStateNormal];
+    [popUpWindow addSubview:photoLib];
+    
+    
+    UILabel *takePhotoLabel=[[UILabel alloc]initWithFrame:CGRectMake((popUpWindow.frame.size.width-160)/3, 100, 80, 20)];
+     takePhotoLabel.text=@"拍照";
+     takePhotoLabel.textAlignment=NSTextAlignmentCenter;
+    [popUpWindow addSubview:takePhotoLabel];
+    
+    UILabel *photoLibLabel=[[UILabel alloc]initWithFrame:CGRectMake((popUpWindow.frame.size.width-160)*2/3+80, 100, 80, 20)];
+    photoLibLabel.text=@"从相册选";
+    photoLibLabel.textAlignment=NSTextAlignmentCenter;
+    [popUpWindow addSubview:photoLibLabel];
+}
+-(void)dismissPopWindow
+{
+     [popUpWindow removeFromSuperview];
+     [grayWindow removeFromSuperview];
+}
+-(void)takePicture
+{
+    [popUpWindow removeFromSuperview];
+    [grayWindow removeFromSuperview];
+    UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+    {
+        imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
+        imagePickerController.allowsEditing = NO;
+        imagePickerController.delegate = self;
+        [self presentViewController:imagePickerController animated:YES completion:^{}];
+    }
+
+}
+-(void)goPhotoLibary
+{
+    [popUpWindow removeFromSuperview];
+    [grayWindow removeFromSuperview];
+    
+    PhotoLibaryViewController *photoLibary=[[PhotoLibaryViewController alloc]init];
+    [self.navigationController pushViewController:photoLibary animated:YES];
+    
+    
+//    UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
+//    imagePickerController.delegate = self;
+//    imagePickerController.allowsEditing = YES;
+//    imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+//    [self presentViewController:imagePickerController animated:YES completion:^{}];
+}
+-(void)goToMangePicView:(id)sender
+{
+    
+}
+-(void)creatUIItem
+{
+    UIImageView* OneButtImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    OneButtImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:OneButtImageView];
+    OneButtImageView.userInteractionEnabled=YES;
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(kSCREEN_WIDTH/2-20, 20, 40, 40);
+    [itemButt setImage:[UIImage imageNamed:@"0_173"] forState:UIControlStateNormal];
+    [itemButt addTarget:self action:@selector(sureAction) forControlEvents:UIControlEventTouchUpInside];
+    [OneButtImageView addSubview:itemButt];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(kSCREEN_WIDTH/2-20, 60, 40, 20)];
+    titleLabel.text=@"确定";
+    titleLabel.textColor=[UIColor whiteColor];
+    titleLabel.textAlignment=NSTextAlignmentCenter;
+    titleLabel.font=[UIFont systemFontOfSize:10];
+    [OneButtImageView addSubview:titleLabel];
+}
+-(void)sureAction
+{
+    [self updateUserInfo];
+}
+
+#pragma mark---textFieldDelegate----textViewDelegate------
+-(void)resignKeyboard
+{
+    [self.view endEditing:YES];
+    if (self.view.frame.origin.y!=0) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.view.frame=CGRectMake(0, 0, kSCREEN_WIDTH, kSCREEN_HEIGHT);
+        }];
+    }
+}
+-(BOOL)textFieldShouldBeginEditing:(UITextField *)textField
+{
+    [UIView animateWithDuration:0.5f animations:^{
+        self.view.frame=CGRectMake(0, -216, kSCREEN_WIDTH, kSCREEN_HEIGHT);
+    }];
+    return YES;
+}
+-(BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    if ([textField isFirstResponder]) {
+        [textField resignFirstResponder];
+    }
+    if (self.view.frame.origin.y!=0) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.view.frame=CGRectMake(0, 0, kSCREEN_WIDTH, kSCREEN_HEIGHT);
+        }];
+    }
+    return YES;
+}
+-(BOOL)textViewShouldBeginEditing:(UITextView *)textView
+{
+    [UIView animateWithDuration:0.5f animations:^{
+        self.view.frame=CGRectMake(0, -216, kSCREEN_WIDTH, kSCREEN_HEIGHT);
+    }];
+    return YES;
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

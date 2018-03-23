@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7531" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NotificationViewController">
+            <connections>
+                <outlet property="contentTableView" destination="xHg-aS-Acg" id="m4a-qF-3YJ"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="xHg-aS-Acg">
+                    <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <connections>
+                        <outlet property="dataSource" destination="-1" id="Abn-2i-sMu"/>
+                        <outlet property="delegate" destination="-1" id="hpw-Oo-NAf"/>
+                    </connections>
+                </tableView>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="xHg-aS-Acg" secondAttribute="trailing" id="Ew1-9z-olb"/>
+                <constraint firstItem="xHg-aS-Acg" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="dm5-HN-nzO"/>
+                <constraint firstAttribute="bottom" secondItem="xHg-aS-Acg" secondAttribute="bottom" id="kA7-f9-5sn"/>
+                <constraint firstItem="xHg-aS-Acg" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="kee-sC-psO">
+                    <variation key="heightClass=regular-widthClass=compact" constant="60"/>
+                </constraint>
+            </constraints>
+            <variation key="default">
+                <mask key="subviews">
+                    <exclude reference="xHg-aS-Acg"/>
+                </mask>
+                <mask key="constraints">
+                    <exclude reference="Ew1-9z-olb"/>
+                    <exclude reference="dm5-HN-nzO"/>
+                    <exclude reference="kA7-f9-5sn"/>
+                    <exclude reference="kee-sC-psO"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=regular-widthClass=compact">
+                <mask key="subviews">
+                    <include reference="xHg-aS-Acg"/>
+                </mask>
+                <mask key="constraints">
+                    <include reference="Ew1-9z-olb"/>
+                    <include reference="dm5-HN-nzO"/>
+                    <include reference="kA7-f9-5sn"/>
+                    <include reference="kee-sC-psO"/>
+                </mask>
+            </variation>
+        </view>
+    </objects>
+</document>

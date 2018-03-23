@@ -1,0 +1,42 @@
+//
+//  MyEvaluatPatientNoExpandCell.m
+//  Doctor
+//
+//  Created by MrZhang on 15/7/15.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "MyEvaluatPatientNoExpandCell.h"
+#import "SDWebImageDownloader.h"
+@implementation MyEvaluatPatientNoExpandCell
+
+- (void)awakeFromNib {
+    self.backView.layer.cornerRadius=5.0f;
+    self.photoImage.layer.cornerRadius=25;
+    self.photoImage.clipsToBounds=YES;
+    self.photoImage.layer.borderWidth=1.0f;
+    self.photoImage.layer.borderColor=[UIColor whiteColor].CGColor;
+}
+-(void)configeCellData:(NSDictionary *)dicData
+{
+    self.nameLabel.text=[NSString stringWithFormat:@"%@",[[dicData objectForKey:@"uName"] isEqualToString:@""]?[dicData objectForKey:@"name"]:[dicData objectForKey:@"uName"]];
+    self.noExpandLabel.text=[dicData objectForKey:@"uComment"];
+    [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:[dicData objectForKey:@"uPicUrl"]] options:SDWebImageDownloaderLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+    } completed:^(UIImage *image, NSData *data, NSError *error, BOOL finished) {
+        if (image) {
+            self.photoImage.image=image;
+        }else
+        {
+            self.photoImage.image=[UIImage imageNamed:@"doctorDefault"];
+        }
+    }];
+    self.starImage.image=[UIImage imageNamed:[NSString stringWithFormat:@"star%@",[dicData objectForKey:@"uGrade"]]];
+    self.timeLabel.text=[dicData objectForKey:@"uCommentTime"];
+}
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

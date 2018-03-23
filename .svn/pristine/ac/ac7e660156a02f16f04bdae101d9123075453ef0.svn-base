@@ -1,0 +1,84 @@
+//
+//  HomeViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/20.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "HomeViewController.h"
+#import "GBSlideOutToUnlockView.h"
+#import "PendingViewController.h"
+#import "MessageListViewController.h"
+#import "WaitingHandleViewController.h"
+#import "TabBarViewController.h"
+#import "EvaluateViewController.h"
+@interface HomeViewController () <GBSlideOutToUnlockViewDelegate>
+{
+    
+}
+@property (weak, nonatomic) IBOutlet UIImageView *panView;
+
+
+@end
+
+@implementation HomeViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+//    [self creatNavgationBarWithTitle:@"首页"];
+//    UIPanGestureRecognizer *panGesture=[[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(jumpToSertainViewController:)];
+//    [self.panView addGestureRecognizer:panGesture];
+}
+//-(void)jumpToSertainViewController:(UIPanGestureRecognizer*)gesture
+//{
+//    self.panView.center= [gesture locationInView:self.view];
+//}
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.tabBarController.tabBar.hidden=YES;
+    [(TabBarViewController*)self.tabBarController  tabbarImageView].hidden=NO;
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (IBAction)buttonAction:(id)sender {
+    UIButton *button = sender;
+    NSInteger index = button.tag;
+    switch (index) {
+        case 100:
+        {
+            WaitingHandleViewController *waitHandleViewController = [[WaitingHandleViewController alloc] init];
+            waitHandleViewController.hidesBottomBarWhenPushed=YES;
+            [self.navigationController pushViewController:waitHandleViewController animated:YES];
+        }
+            break;
+        case 101:
+        {
+           TabBarViewController*tabbarController=(TabBarViewController*)self.tabBarController;
+            [tabbarController selectItemIndex:1];
+
+        }
+            break;
+        case 102:
+        {
+            TabBarViewController*tabbarController=(TabBarViewController*)self.tabBarController;
+            [tabbarController selectItemIndex:2];
+        }
+            break;
+        case 103:
+        {
+            EvaluateViewController *evaluateController=[[EvaluateViewController alloc]init];
+            evaluateController.hidesBottomBarWhenPushed=YES;
+            [self.navigationController pushViewController:evaluateController animated:YES];
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+@end

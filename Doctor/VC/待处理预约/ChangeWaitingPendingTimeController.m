@@ -1,0 +1,410 @@
+//
+//  ChangeWaitingPendingTimeController.m
+//  YSProject
+//
+//  Created by MrZhang on 15/6/15.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "ChangeWaitingPendingTimeController.h"
+#import "NSDate+Convenience.h"
+#import "NSDate+FSExtension.h"
+#import "NSDateAdditions.h"
+#import "WorkTimeModel.h"
+#import "UserModel.h"
+#import "TimeModel.h"
+#import "WBCalendarView.h"
+@interface ChangeWaitingPendingTimeController ()<WBCalendarMonthViewDelegate>
+{
+    CWHttpRequest *request;
+    NSMutableDictionary *dataDic;
+    BOOL isFirstSelectDay;
+}
+@property (weak, nonatomic) IBOutlet WBCalendarView *calender;
+@property(nonatomic,strong)NSDate *userDay;
+@property(assign,nonatomic)NSInteger startIndex;
+@property(assign,nonatomic)NSInteger  endIndex;
+
+@property (weak, nonatomic) IBOutlet UITableView *baseTable;
+@property (strong,nonatomic) NSMutableArray *dataArray;
+@property (strong,nonatomic) NSMutableArray *timeArray;
+@property (strong,nonatomic) NSDate *selectedDate;
+@property (strong,nonatomic) NSMutableArray *submitArray;
+@end
+
+@implementation ChangeWaitingPendingTimeController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"修改预约时间"];
+    if ([self respondsToSelector:@selector(edgesForExtendedLayout)]) {
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+        self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+     self.calender.monthViewDelegate = self;
+    isFirstSelectDay=YES;
+    _submitArray=[NSMutableArray arrayWithCapacity:0];
+    [self addBackButt];
+    [self creatUIItem];
+    // 设置时间格式
+    _userDay=[NSDate fs_dateFromString:[_orderDictionary objectForKey:@"uDay"] format:@"yyyy-MM-dd"];
+    self.calender.selectedDate=[NSDate fs_dateWithYear:[_userDay fs_year] month:[_userDay fs_month] day:[_userDay fs_day]];
+    [self getWorkTimeDataAtDay:_userDay];
+    [self createTableViewHeaderView];
+    
+   
+   
+ 
+}
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self settingUIData];
+     self.calender.selectedDate=_userDay;
+    self.calender.selectImage=[UIImage imageNamed:@"0_225"];
+
+}
+-(void)settingUIData
+{
+    _timeArray=[NSMutableArray arrayWithCapacity:4];
+     for (int i=0;i<[[[_dataArray objectAtIndex:0] objectForKey:@"time"] count];i++) {
+      NSDictionary *workModel=[[[_dataArray objectAtIndex:0] objectForKey:@"time"] objectAtIndex:i];
+      NSString *time1= [workModel objectForKey:@"time1"];
+      NSString *time2= [workModel objectForKey:@"time2"];
+        if ([time1 isEqualToString:[_orderDictionary objectForKey:@"uTime1"]]) {
+            self.startIndex=i;
+        }
+        if ([time2 isEqualToString:[_orderDictionary objectForKey:@"uTime2"]]) {
+            self.endIndex=i;
+        }
+    }
+     for (int i=0;i<[[[_dataArray objectAtIndex:0] objectForKey:@"time"] count];i++) {
+         if (i>=self.startIndex&&i<=self.endIndex) {
+             [_submitArray addObject:[[[_dataArray objectAtIndex:0] objectForKey:@"time"] objectAtIndex:i]];
+         }
+     }
+    [self.baseTable reloadData];
+}
+-(void)creatUIItem
+{
+    UIImageView* OneButtImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    OneButtImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:OneButtImageView];
+    OneButtImageView.userInteractionEnabled=YES;
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(kSCREEN_WIDTH/2-20, 20, 40, 40);
+    [itemButt setImage:[UIImage imageNamed:@"0_173"] forState:UIControlStateNormal];
+    [itemButt addTarget:self action:@selector(sureButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    [OneButtImageView addSubview:itemButt];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(kSCREEN_WIDTH/2-20, 60, 40, 20)];
+    titleLabel.text=@"确定";
+    titleLabel.textColor=[UIColor whiteColor];
+    titleLabel.textAlignment=NSTextAlignmentCenter;
+    titleLabel.font=[UIFont systemFontOfSize:10];
+    [OneButtImageView addSubview:titleLabel];
+    
+    
+//    _calender.appearance.headerMinimumDissolvedAlpha = 1.0;
+//    _calender.appearance.headerDateFormat=@"yyyy年MM月";
+//    _calender.appearance.headerTitleColor=[UIColor blackColor];
+    //    self.contentView.layer.cornerRadius=5.0f;
+    //    self.contentView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    //    self.contentView.layer.borderWidth=1.0f;
+}
+
+- (void)getWorkTimeDataAtDay:(NSDate*)date{
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+        NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSInteger uid=[[UserManager currentUserManager].user.uid integerValue];
+        NSString *dateString=[date fs_stringWithFormat:@"yyyy-MM-dd"];
+        NSDictionary *jsonDictionary = @{@"did":[NSNumber numberWithInteger:uid],@"day":dateString,@"SessionID":sessionID};
+         NSLog(@"jsonDictionary====%@",jsonDictionary);
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, GetWorkTimeByDay] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            NSLog(@"服务项目接口成功%@", responseObject);
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+               NSLog(@"sessionID😳😳😳😳😳😳😳😳😳😳=======%@",[responseObject valueForKeyWithOutNSNull:@"SessionID"]);
+            if ([code integerValue]==0){
+                UserManager *userManager=[UserManager currentUserManager];
+                userManager.sessionID=[responseObject objectForKey:@"SessionID"];
+                
+                [userManager synchronize];
+                if ([_userDay isEqualToDate:date]) {
+                    [self settingUIData];
+                }else
+                {
+                    [_dataArray removeAllObjects];
+                }
+                _dataArray=[[responseObject objectForKey:@"data"] mutableCopy];
+                [self.baseTable reloadData];
+                [_calender reload];
+            }else
+            {
+                [SVProgressHUD showErrorWithStatus:[responseObject valueForKeyWithOutNSNull:@"text"]];
+            }
+            
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"服务项目接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+
+- (void)submitChangeTimeWithID:(NSInteger)orderID andChangeDate:(NSDate*)date andStartTime:(NSString*)time1 andEndTime:(NSString*)time2{
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+        NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary = @{@"id":[NSNumber numberWithInteger:orderID],@"dDay":date,@"SessionID":sessionID,@"dTime1":time1,@"dTime2":time2};
+         NSLog(@"jsonDictionary====%@",jsonDictionary);
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, ResetTime] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            NSLog(@"服务项目接口成功%@", responseObject);
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+               NSLog(@"sessionID😳😳😳😳😳😳😳😳😳😳=======%@",[responseObject valueForKeyWithOutNSNull:@"SessionID"]);
+            if ([code integerValue]==0){
+                UserManager *userManager=[UserManager currentUserManager];
+                userManager.sessionID=[responseObject objectForKey:@"SessionID"];
+                [userManager synchronize];
+                NSDictionary *passDic=@{@"status":@"2",@"dDay":date,@"dTime1":time1,@"dTime2":time2};
+                if (self.delegate&&[self.delegate respondsToSelector:@selector(passChangeTimeStatusAndDictionary:)]){
+                    [self.delegate passChangeTimeStatusAndDictionary:passDic];
+                }
+                [self.navigationController popViewControllerAnimated:YES];
+            }else
+            {
+                [SVProgressHUD showErrorWithStatus:[responseObject valueForKeyWithOutNSNull:@"text"]];
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"服务项目接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+-(void)sureButtonAction
+{
+    NSArray *sortDescripter=[NSArray arrayWithObject:[NSSortDescriptor sortDescriptorWithKey:@"time1" ascending:YES]];
+    [_submitArray sortUsingDescriptors:sortDescripter];
+    if (_submitArray.count==0) {
+       [SVProgressHUD showErrorWithStatus:@"必须选择一个时间段"];
+        return;
+    }
+    if (![self sortArrayAndCheckArray:_submitArray]){
+      [SVProgressHUD showErrorWithStatus:@"必须选择连续的时间段"];
+    }else
+    {
+        NSString *time1=[[_submitArray objectAtIndex:0] valueForKey:@"time1"];
+        NSString *time2=[[_submitArray lastObject] valueForKey:@"time2"];
+        if (self.selectedDate==nil) {
+            [SVProgressHUD showErrorWithStatus:@"请选择日期"];
+            return;
+        }
+        [self  submitChangeTimeWithID:[[_orderDictionary objectForKey:@"id"] integerValue] andChangeDate:self.selectedDate andStartTime:time1 andEndTime:time2];
+    }
+}
+#pragma mark----tableViewDelegate-------
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    if (_dataArray.count==0) {
+        return 0;
+    }else
+    {
+     return [[[_dataArray objectAtIndex:0] objectForKey:@"time"] count];
+    }
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 30;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *reuseIdentifier=@"cellIdentifier";
+    UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    if (!cell) {
+        cell=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+    }else
+    {
+        for (id view in cell.contentView.subviews) {
+            [view removeFromSuperview];
+        }
+    }
+    [self configerTableViewCell:cell withIndexPath:indexPath];
+    cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    return cell;
+}
+-(void)configerTableViewCell:(UITableViewCell*)cell withIndexPath:(NSIndexPath*)indexPath
+{
+        UIButton *selectedButt=[UIButton buttonWithType:UIButtonTypeCustom];
+        selectedButt.frame=CGRectMake(kSCREEN_WIDTH-60, 5, 20, 20);
+        selectedButt.tag=indexPath.row+1;
+        [selectedButt setBackgroundImage:[UIImage imageNamed:@"0_74"] forState:UIControlStateNormal];
+        [selectedButt setBackgroundImage:[UIImage imageNamed:@"0_71"] forState:UIControlStateSelected];
+        [selectedButt addTarget:self action:@selector(timeSelected:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.contentView addSubview:selectedButt];
+        
+        NSDictionary *timeDic=[[[_dataArray objectAtIndex:0]objectForKey:@"time"] objectAtIndex:indexPath.row];
+        UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(10, 3, kSCREEN_WIDTH-100, 21)];
+        titleLabel.font=[UIFont systemFontOfSize:12];
+        titleLabel.text=[NSString stringWithFormat:@"%@-%@",[timeDic objectForKey:@"time1"],[timeDic objectForKey:@"time2"]];
+        [cell.contentView addSubview:titleLabel];
+    
+        if ([self.selectedDate isEqualToDate:[NSDate fs_dateFromString:[_orderDictionary objectForKey:@"uDay"] format:@"yyyy-MM-dd"]]) {
+//            if (indexPath.row>=self.startIndex&&indexPath.row<=self.endIndex) {
+//                selectedButt.selected=YES;
+//            }
+            if ([_submitArray containsObject:timeDic]) {
+                selectedButt.selected=YES;
+            }else
+            {
+                selectedButt.selected=NO;
+            }
+        }
+        else
+        {
+            if (![[timeDic objectForKey:@"isFree"] boolValue]) {
+                selectedButt.hidden=YES;
+            }
+            if ([_submitArray containsObject:timeDic]) {
+                selectedButt.selected=YES;
+            }
+        }
+    
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+  
+    UITableViewCell *selecetedCell=[tableView cellForRowAtIndexPath:indexPath];
+    UIButton *butt=(UIButton*)[selecetedCell.contentView viewWithTag:indexPath.row+1];
+      butt.selected=!butt.selected;
+    if (butt.selected) {
+      [_submitArray addObject:[[[_dataArray objectAtIndex:0]objectForKey:@"time"] objectAtIndex:indexPath.row]];
+    }else
+    {
+        if ([_submitArray containsObject:[[[_dataArray objectAtIndex:0]objectForKey:@"time"] objectAtIndex:indexPath.row]]) {
+            [_submitArray removeObject:[[[_dataArray objectAtIndex:0]objectForKey:@"time"] objectAtIndex:indexPath.row]];
+        }
+    }
+}
+-(void)createTableViewHeaderView
+{
+    UIView *headerView=[[UIView alloc]initWithFrame:CGRectMake(0, 0, kSCREEN_WIDTH, 30)];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(10, 0, 100, 30)];
+    titleLabel.text=@"选择时段:";
+    [headerView addSubview:titleLabel];
+    self.baseTable.tableHeaderView=headerView;
+}
+/*
+- (void)calendar:(FSCalendar *)calendar didSelectDate:(NSDate *)date{
+    self.selectedDate=date;
+    [self getWorkTimeDataAtDay:date];
+    [_submitArray removeAllObjects];
+    [self.baseTable reloadData];
+}
+- (void)calendarCurrentMonthDidChange:(FSCalendar *)calendar{
+    
+}
+ */
+-(void)timeSelected:(UIButton*)butt
+{
+    butt.selected=!butt.selected;
+    if (butt.selected) {
+        [_submitArray addObject:[[[_dataArray objectAtIndex:0]objectForKey:@"time"] objectAtIndex:butt.tag-1]];
+    }else
+    {
+        if ([_submitArray containsObject:[[[_dataArray objectAtIndex:0]objectForKey:@"time"] objectAtIndex:butt.tag-1]]) {
+            [_submitArray removeObject:[[[_dataArray objectAtIndex:0]objectForKey:@"time"] objectAtIndex:butt.tag-1]];
+        }
+    }
+}
+-(BOOL)sortArrayAndCheckArray:(NSMutableArray*)array
+{
+    NSArray *sortDescripter=[NSArray arrayWithObject:[NSSortDescriptor sortDescriptorWithKey:@"time1" ascending:YES]];
+    [array sortUsingDescriptors:sortDescripter];
+        if (array.count==1) {
+            return YES;
+        }else
+        {
+            for (int i=0; i<array.count-1; i++) {
+                NSDictionary *dic1=[array objectAtIndex:i];
+                NSDictionary *dic2=[array objectAtIndex:i+1];
+                NSString *date1String=[self dateFromDate:self.selectedDate andTimeString:[dic1 objectForKey:@"time2"]];
+                NSString *date2String=[self dateFromDate:self.selectedDate andTimeString:[dic2 objectForKey:@"time1"]];
+                NSDate *date1=[NSDate fs_dateFromString:date1String format:@"yyyy-MM-dd HH:mm"];
+                NSDate *date2=[NSDate fs_dateFromString:date2String format:@"yyyy-MM-dd HH:mm"];
+                NSLog(@"date1String==%@,\ndate2String==%@,\ndate1===%@,\ndate2=%@",date1String ,date2String,date1,date2);
+                NSDateComponents *dateComponents = [[NSCalendar currentCalendar] components:NSMinuteCalendarUnit fromDate:date1 toDate:date2 options:0];
+                if (dateComponents.minute!=1) {
+                    return NO;
+                }
+            }
+            return YES;
+        }
+
+}
+-(NSString*)dateFromDate:(NSDate*)passDate andTimeString:(NSString*)timeString
+{
+    
+    NSString *dateString=[passDate fs_stringWithFormat:@"yyy-MM-dd"];
+    NSMutableString *finalString=[dateString mutableCopy];
+    [finalString appendFormat:@" %@",timeString];
+    return finalString;
+}
+- (void)calendarViewDidChangeToYear:(NSInteger)year month:(NSInteger)month
+{
+    
+}
+- (void)calendarMonthView:(WBCalendarMonthView *)monthView didSelectedDate:(NSDate *)date
+{
+    self.selectedDate=date;
+    NSString *today=[[NSDate date] fs_stringWithFormat:@"yyyy-MM-dd"];
+    NSDate *todayDate=[NSDate fs_dateFromString:today format:@"yyyy-MM-dd"];
+    if ([date compare:todayDate]==NSOrderedAscending) {
+        [SVProgressHUD showErrorWithStatus:@"请选择不小于今天的时间"];
+        return;
+    }
+    if (isFirstSelectDay) {
+     [self getWorkTimeDataAtDay:_userDay];
+      isFirstSelectDay=NO;
+    }else
+    {
+     [self getWorkTimeDataAtDay:date];
+    }
+    [_submitArray removeAllObjects];
+    [self.baseTable reloadData];
+}
+- (NSString *)calendarMonthView:(WBCalendarMonthView *)monthView titleForDate:(NSDate *)date
+{
+    return nil;
+}
+//- (NSDate*)calenderMonthViewSelectedDate
+//{
+//    return _userDay;
+//}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

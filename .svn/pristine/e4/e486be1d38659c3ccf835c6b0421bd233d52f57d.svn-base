@@ -1,0 +1,86 @@
+//
+//  AppDelegate.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/20.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "AppDelegate.h"
+#import "LoginViewController.h"
+#import "RootViewController.h"
+#import "EaseMob.h"
+#import "CoreNewFeatureVC.h"
+#import "TabBarViewController.h"
+@interface AppDelegate ()
+
+@end
+
+@implementation AppDelegate
+
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    [[EaseMob sharedInstance] registerSDKWithAppKey:@"wangji2015#aa" apnsCertName:@"Doctor"];
+    [[EaseMob sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.window.backgroundColor = RGBCOLOR(254, 255, 255);
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:NO];
+    //判断是否需要显示：（内部已经考虑版本及本地版本缓存）
+    BOOL canShow = [CoreNewFeatureVC canShowNewFeature];
+//
+//    //测试代码，正式版本应该删除
+//    canShow = YES;
+    if(canShow){
+        NewFeatureModel *m1 = [NewFeatureModel model:[UIImage imageNamed:@"320x480"]];
+        NewFeatureModel *m2 = [NewFeatureModel model:[UIImage imageNamed:@"640x960"]];
+        NewFeatureModel *m3 = [NewFeatureModel model:[UIImage imageNamed:@"1242x2208"]];
+        self.window.rootViewController = [CoreNewFeatureVC newFeatureVCWithModels:@[m1,m2,m3] enterBlock:^{
+            NSLog(@"进入主页面");
+             [self enterHomeViewController];
+        }];
+    }else{
+        if ([UserManager currentUserManager].userState==UserStateLogin) {
+            [self enterTabbarController];
+        }else
+        {
+         [self enterHomeViewController];
+        }
+    }
+    [self.window makeKeyAndVisible];
+    return YES;
+}
+
+- (void)enterHomeViewController {
+     LoginViewController *vc = [[LoginViewController alloc] init];
+    _rootVC = [[UINavigationController alloc] initWithRootViewController:vc];
+    _rootVC.interactivePopGestureRecognizer.enabled = YES;
+    self.window.rootViewController = _rootVC;
+}
+-(void)enterTabbarController
+{
+    TabBarViewController *vc = [[TabBarViewController alloc] init];
+    self.window.rootViewController = vc;
+}
+- (void)applicationWillResignActive:(UIApplication *)application {
+    // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
+    // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationDidEnterBackground:application];
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationWillEnterForeground:application];
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+     [[EaseMob sharedInstance] applicationWillTerminate:application];
+}
+
+@end

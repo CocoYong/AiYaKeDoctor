@@ -1,0 +1,22 @@
+//
+//  UploadImageObject.h
+//  Running
+//
+//  Created by chenchao on 14-9-4.
+//
+
+#import <Foundation/Foundation.h>
+@protocol uploadImageFinishDelegate;
+@interface UploadImageObject : NSObject
+{
+    UIImage *smallImage;
+    UIImage *originalImage;
+    NSString *imageUrlName;
+    NSString *type;
+}
+@property (strong,nonatomic)UIImage *smallImage;
+@property (strong,nonatomic)UIImage *originalImage;
+@property (strong,nonatomic)NSString *imageUrlName;
+@property (nonatomic,strong)NSString *type;
+@end
+

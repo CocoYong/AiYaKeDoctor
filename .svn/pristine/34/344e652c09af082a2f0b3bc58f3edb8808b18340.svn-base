@@ -1,0 +1,119 @@
+//
+//  CWHttpRequest.m
+//  AnyLoan
+//
+//  Created by cuiw on 11/13/14.
+//  Copyright (c) 2014 Creditease. All rights reserved.
+//
+
+#import "CWHttpRequest.h"
+@interface CWHttpRequest ()
+{
+    NSOperationQueue *_operationQueen;
+}
+
+@end
+
+@implementation CWHttpRequest
+
+- (id)init {
+    self = [super init];
+    if (self) {
+        _operationQueen = [[NSOperationQueue alloc] init];
+    }
+    return self;
+}
+
+- (void)cancelQueen {
+    if (_operationQueen) {
+        [_operationQueen cancelAllOperations];
+    }
+}
+- (void)JSONRequestOperationWithURL:(NSString *)urlString
+                                                        path:(NSString *)path
+                                             parameters:(NSDictionary *)parameters
+                                            successBlock:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject))success
+                                                   failBlock:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject))fail {
+    NSLog(@"网络指示器显示标记=====%d",  [AFNetworkActivityIndicatorManager sharedManager].isNetworkActivityIndicatorVisible);
+    NSURL *url = [NSURL URLWithString:urlString];
+    AFHTTPClient *httpClient = [[AFHTTPClient alloc] initWithBaseURL:url];
+    NSMutableDictionary *paramDictionary = [NSMutableDictionary parametersDictionary];
+    for (NSString *key in [parameters allKeys]) {
+        [paramDictionary setObject:parameters[key] forKey:key];
+    }
+    NSMutableURLRequest *request = [httpClient requestWithMethod:@"POST" path:path parameters:paramDictionary];
+    // 这里要做一个修正，以确保支持text/html格式contenttype的json数据
+    [AFJSONRequestOperation addAcceptableContentTypes:[NSSet setWithObject:@"text/html"]];
+    request.timeoutInterval = kTIME_OUT_SEC;
+    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:request success:success failure:fail];
+    // 单项SSL认证设置
+    operation.allowsInvalidSSLCertificate = YES;
+    [_operationQueen addOperation:operation];
+}
+
+- (id)JSONRequestOperationWithURL:(NSString *)urlString
+                               path:(NSString *)path
+                         parameters:(NSDictionary *)parameters {
+    NSLog(@"网络指示器显示标记=====%d",  [AFNetworkActivityIndicatorManager sharedManager].isNetworkActivityIndicatorVisible);
+    NSURL *url = [NSURL URLWithString:urlString];
+    AFHTTPClient *httpClient = [[AFHTTPClient alloc] initWithBaseURL:url];
+    NSMutableDictionary *paramDictionary = [NSMutableDictionary parametersDictionary];
+    for (NSString *key in [parameters allKeys]) {
+        [paramDictionary setObject:parameters[key] forKey:key];
+    }
+    NSMutableURLRequest *request = [httpClient requestWithMethod:@"POST" path:path parameters:paramDictionary];
+    // 这里要做一个修正，以确保支持text/html格式contenttype的json数据
+    [AFJSONRequestOperation addAcceptableContentTypes:[NSSet setWithObject:@"text/html"]];
+    request.timeoutInterval = kTIME_OUT_SEC;
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    // 单项SSL认证设置
+    operation.allowsInvalidSSLCertificate = YES;
+    [httpClient registerHTTPOperationClass:[AFHTTPRequestOperation class]];
+//    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+//         // Success happened here so do what ever you need in a async manner
+//     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+//         //error occurred here in a async manner
+//     }];
+    [operation start];
+    [operation waitUntilFinished];
+    NSError *error = nil;
+    id data = [NSJSONSerialization JSONObjectWithData:[operation responseData] options:NSJSONReadingMutableLeaves error:&error];
+    return data;
+}
+-(void)imageUploadWithUrl:(NSString*)urlString
+                 fillPath:(NSString*)path
+                parameters:(NSDictionary *)parameters
+                  andData:(NSData*)fileData
+                 mimeType:(NSString*)type
+                 fileName:(NSString*)fileName
+             successBlock:(void(^)(AFHTTPRequestOperation *operation, id responseObject))success
+                failBlock:(void (^)(AFHTTPRequestOperation *operation, NSError *error))fail
+{
+    NSURL *url = [NSURL URLWithString:urlString];
+    AFHTTPClient *httpClient = [[AFHTTPClient alloc] initWithBaseURL:url];
+    NSMutableDictionary *paramDictionary = [NSMutableDictionary parametersDictionary];
+    for (NSString *key in [parameters allKeys]) {
+        [paramDictionary setObject:parameters[key] forKey:key];
+    }
+    NSMutableURLRequest *request = [httpClient multipartFormRequestWithMethod:@"POST" path:path parameters:paramDictionary constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+//        [formData appendPartWithFileData:fileData name:@"file" fileName:nil mimeType:nil];
+//        [formData appendPartWithHeaders:paramDictionary body:fileData];
+        [formData appendPartWithFormData:fileData name:@"file"];
+    }];
+    
+  
+    request.timeoutInterval = kTIME_OUT_SEC;
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc]initWithRequest:request];
+    [AFHTTPRequestOperation addAcceptableContentTypes:[NSSet setWithObject:@"text/html"]];
+    [operation setUploadProgressBlock:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
+        NSLog(@"totalBytesWritten===%lld,totalBytesExpectedToWrite===%lld",totalBytesWritten,totalBytesExpectedToWrite);
+    }];
+    [operation setCompletionBlockWithSuccess:success failure:fail];
+    [_operationQueen addOperation:operation];
+    
+}
+-(void)updateUserInfoSuccessBlock:(void(^)(NSInteger code,NSDictionary *data))success failBlock:(void(^)(NSInteger code,NSString *errorString))fail
+{
+
+}
+@end

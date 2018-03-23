@@ -1,0 +1,63 @@
+//
+//  MyRecieveEvaluateCell.m
+//  Doctor
+//
+//  Created by MrZhang on 15/6/23.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "MyRecieveEvaluateCell.h"
+#import <QuartzCore/QuartzCore.h> 
+#import "SDWebImageDownloader.h"
+@implementation MyRecieveEvaluateCell
+
+- (void)awakeFromNib {
+    self.backView.layer.cornerRadius=5.0f;
+    self.backView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    self.backView.layer.borderWidth=1.0f;
+    self.expandButt.selected=NO;
+    [self.contentView insertSubview:self.backView atIndex:0];
+}
+-(void)configeCellData:(NSDictionary *)dicData
+{
+        self.fuwuTaiduFen.text=[NSString stringWithFormat:@"%@分",[dicData objectForKey:@"dGrade1"]];
+        self.zhuanyeShuiPinFen.text=[NSString stringWithFormat:@"%@分",[dicData objectForKey:@"dGrade2"]];
+        self.jiuyiHuanJingFen.text=[NSString stringWithFormat:@"%@分",[dicData objectForKey:@"dGrade3"]];
+        self.expandDetailLabel.text=[dicData objectForKey:@"dComment"];
+        self.noExpandDetailLabel.text=[dicData objectForKey:@"dComment"];
+        [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:[dicData objectForKey:@"dPicUrl"]] options:SDWebImageDownloaderLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+            //        NSLog(@"receivedSize===%ld,expectedSize===%ld",(long)receivedSize,(long)expectedSize);
+        } completed:^(UIImage *image, NSData *data, NSError *error, BOOL finished) {
+            self.photoImage.image=image;
+        }];
+        self.starImageView.image=[UIImage imageNamed:[NSString stringWithFormat:@"star%@",[dicData objectForKey:@"dGrade"]]];
+        self.timeLabel.text=[dicData objectForKey:@"dCommentTime"];
+}
+-(CGFloat)countSelfHeight:(NSString*)text
+{
+    CGSize fitSize=CGSizeMake(kSCREEN_WIDTH-40, 5000);
+    CGRect rect=[text boundingRectWithSize:fitSize options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:12.0f]} context:nil];
+    return CGRectGetHeight(rect);
+}
+-(void)layoutSubviews
+{
+    [super layoutSubviews];
+    if (self.expandButt.selected) {
+        self.backView.frame=CGRectMake(CGRectGetMinX(self.backView.frame), CGRectGetMinY(self.backView.frame), CGRectGetWidth(_backView.frame), CGRectGetMaxY(_expandDetailLabel.frame)+10);
+        self.frame=CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetWidth(self.frame), CGRectGetMaxY(_backView.frame)+10);
+         NSLog(@"self.frame.height=====%f",self.frame.size.height);
+    }else
+    {
+        self.backView.frame=CGRectMake(CGRectGetMinX(self.backView.frame), CGRectGetMinY(self.backView.frame), CGRectGetWidth(_backView.frame), CGRectGetMaxY(_noExpandDetailLabel.frame)+10);
+        self.frame=CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetWidth(self.frame), CGRectGetMaxY(_backView.frame)+10);
+        NSLog(@"self.frame.height=====%f",self.frame.size.height);
+    }
+    
+ }
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

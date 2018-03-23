@@ -1,0 +1,150 @@
+//
+//  EvaluatePatientViewController.m
+//  YSProject
+//
+//  Created by MrZhang on 15/6/19.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "EvaluatePatientViewController.h"
+#import "UIPlaceHolderTextView.h"
+#import "HCSStarRatingView.h"
+@interface EvaluatePatientViewController ()<UITextViewDelegate>
+{
+    CWHttpRequest *request;
+}
+@property (strong, nonatomic)UIPlaceHolderTextView *conmentTextView;
+@property (weak, nonatomic) IBOutlet HCSStarRatingView *starView;
+@property(nonatomic,assign) NSInteger ugrad;
+@property (weak, nonatomic) IBOutlet UILabel *evaluatePatient;
+
+@end
+
+@implementation EvaluatePatientViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"评价患者"];
+    [self addBackButt];
+    [self creatUIItem];
+    
+    _conmentTextView=[[UIPlaceHolderTextView alloc]initWithFrame:CGRectMake(20, 200, kSCREEN_WIDTH-40, 150) andPlaceholder:@"请输入评价内容" andLayerRadius:5.0f andBorderColor:[UIColor lightGrayColor] andBorderWidth:0.5f];
+    _conmentTextView.delegate=self;
+    _conmentTextView.layer.cornerRadius=5.0f;
+    _conmentTextView.layer.borderWidth=1.0f;
+    _conmentTextView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    [self.view addSubview:_conmentTextView];
+    self.conmentTextView.placeholder=@"请输入评价内容";
+    UITapGestureRecognizer *tapGesture=[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(resignKeyboard)];
+    [self.view addGestureRecognizer:tapGesture];
+}
+-(void)resignKeyboard
+{
+    [_conmentTextView resignFirstResponder];
+    if (self.view.frame.origin.y!=0) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.view.frame=CGRectMake(0, 0, kSCREEN_WIDTH, kSCREEN_HEIGHT);
+        }];
+    }
+}
+
+-(void)creatUIItem
+{
+    UIImageView* OneButtImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    OneButtImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:OneButtImageView];
+    OneButtImageView.userInteractionEnabled=YES;
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(kSCREEN_WIDTH/2-20, 20, 40, 40);
+    [itemButt setImage:[UIImage imageNamed:@"0_173"] forState:UIControlStateNormal];
+    [itemButt addTarget:self action:@selector(sureButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    [OneButtImageView addSubview:itemButt];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(kSCREEN_WIDTH/2-20, 60, 40, 20)];
+    titleLabel.text=@"确定";
+    titleLabel.textColor=[UIColor whiteColor];
+    titleLabel.textAlignment=NSTextAlignmentCenter;
+    titleLabel.font=[UIFont systemFontOfSize:10];
+    [OneButtImageView addSubview:titleLabel];
+    
+    self.conmentTextView.layer.cornerRadius=5.0f;
+    self.conmentTextView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    self.conmentTextView.layer.borderWidth=1.0f;
+    
+}
+-(void)sureButtonAction
+{
+    [self evaluatePatientRequest];
+}
+-(void)evaluatePatientRequest
+{
+    self.ugrad=(int)self.starView.value;
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+       NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary;
+        if (_conmentTextView.text==nil||[_conmentTextView.text isEqualToString:@""]) {
+         jsonDictionary= @{@"id":[_orderDic objectForKey:@"id"], @"SessionID": sessionID,@"uGrade":[NSNumber numberWithInteger:self.ugrad]};
+        }else
+        {
+          jsonDictionary= @{@"id":[_orderDic objectForKey:@"id"], @"SessionID": sessionID,@"uGrade":[NSNumber numberWithInteger:self.ugrad],@"uComment":_conmentTextView.text};
+        }
+         NSLog(@"jsonDictionary====%@",jsonDictionary);
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, CommentOrder] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+               NSLog(@"sessionID😳😳😳😳😳😳😳😳😳😳=======%@",[responseObject valueForKeyWithOutNSNull:@"SessionID"]);
+            if ([code integerValue]==0){
+                UserManager *userManager=[UserManager currentUserManager];
+                userManager.sessionID=[responseObject objectForKey:@"SessionID"];
+                
+                [userManager synchronize];
+                NSLog(@"responseDic====%@",responseObject);
+                if (self.delegate&&[self.delegate respondsToSelector:@selector(passEvaluatPatientDataToFrontController:)]) {
+                    NSDictionary *passDic=@{@"uGrade":[NSNumber numberWithInteger:self.ugrad],@"uComment":_conmentTextView.text};
+                    [self.delegate passEvaluatPatientDataToFrontController:passDic];
+                    [self.navigationController popViewControllerAnimated:YES];
+                }
+            }else
+            {
+                [SVProgressHUD showErrorWithStatus:[responseObject valueForKeyWithOutNSNull:@"text"]];
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"完成订单接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+/*
+-(BOOL)textViewShouldBeginEditing:(UITextView *)textView
+{
+    [UIView animateWithDuration:0.5f animations:^{
+        self.view.frame=CGRectMake(0, -216, kSCREEN_WIDTH, kSCREEN_HEIGHT);
+    }];
+    return YES;
+}
+-(void)textViewDidEndEditing:(UITextView *)textView
+{
+    [textView resignFirstResponder];
+}
+ */
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

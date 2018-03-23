@@ -1,0 +1,62 @@
+//
+//  CalenderViewController.m
+//  Doctor
+//
+//  Created by MrZhang on 15/7/3.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "CalenderViewController.h"
+#import "EventKitDataSource.h"
+#import "Kal.h"
+#import "NSDate+Convenience.h"
+#import "NSDateAdditions.h"
+@interface CalenderViewController ()<UITableViewDelegate, KalViewControllerDelegate>
+{
+    KalViewController *kal;
+    EventKitDataSource *dataSource;
+}
+@end
+
+@implementation CalenderViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:self.titleString];
+    [self addBackButt];
+    
+    kal = [[KalViewController alloc] initWithSelectionMode:KalSelectionModeSingle];
+    kal.selectedDate = [NSDate dateStartOfDay:[NSDate date]];
+    kal.selectedDelegate = self;
+    kal.delegate=self;
+    dataSource = [EventKitDataSource dataSource];
+    kal.dataSource = dataSource;
+    kal.minAvailableDate = [NSDate dateStartOfDay:[[NSDate date] offsetDay:0]];
+    kal.maxAVailableDate = [kal.minAvailableDate offsetDay:MAXFLOAT];
+    UIView *contentView = [[UIView alloc] initWithFrame:CGRectMake(10, 60, kSCREEN_WIDTH - 20, 308)];
+    kal.view.layer.cornerRadius=5.0f;
+    [contentView addSubview:kal.view];
+    [self.view addSubview:contentView];
+}
+- (void)selectedData:(NSDate *)date {
+    
+    if (self.delegate&&[self.delegate respondsToSelector:@selector(passRetureDate:)]) {
+        [self.delegate passRetureDate:date];
+    }
+    [self.navigationController popViewControllerAnimated:YES];
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

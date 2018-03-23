@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14E26a" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="133" id="KGk-i7-Jjw" customClass="AnnouncementTableViewCell">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="133"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="43"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iQL-Gd-UEC">
+                        <rect key="frame" x="10" y="0.0" width="300" height="122"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="活动公告" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GIz-E6-fl3">
+                                <rect key="frame" x="10" y="10" width="68" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2015/05/03 16:05" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mb2-wS-Kb0">
+                                <rect key="frame" x="176" y="10" width="114" height="17"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qlf-C2-z7f">
+                                <rect key="frame" x="10" y="36" width="280" height="41"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="mb2-wS-Kb0" secondAttribute="trailing" constant="10" id="0KH-g3-OaU"/>
+                            <constraint firstItem="GIz-E6-fl3" firstAttribute="leading" secondItem="iQL-Gd-UEC" secondAttribute="leading" constant="10" id="2Su-9D-7jc"/>
+                            <constraint firstItem="GIz-E6-fl3" firstAttribute="top" secondItem="iQL-Gd-UEC" secondAttribute="top" constant="10" id="A62-dx-ovz"/>
+                            <constraint firstItem="qlf-C2-z7f" firstAttribute="top" secondItem="GIz-E6-fl3" secondAttribute="bottom" constant="5" id="UKe-C8-2t4"/>
+                            <constraint firstAttribute="trailing" secondItem="qlf-C2-z7f" secondAttribute="trailing" constant="10" id="YyT-QD-06f"/>
+                            <constraint firstItem="qlf-C2-z7f" firstAttribute="leading" secondItem="iQL-Gd-UEC" secondAttribute="leading" constant="10" id="nlX-Xe-wnF"/>
+                            <constraint firstItem="mb2-wS-Kb0" firstAttribute="top" secondItem="iQL-Gd-UEC" secondAttribute="top" constant="10" id="stm-d5-6ee"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="iQL-Gd-UEC" secondAttribute="bottom" constant="10" id="Q7a-CO-qd6"/>
+                    <constraint firstItem="iQL-Gd-UEC" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="10" id="QI8-BK-egE"/>
+                    <constraint firstItem="iQL-Gd-UEC" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="SBY-Sg-Oyz"/>
+                    <constraint firstAttribute="trailing" secondItem="iQL-Gd-UEC" secondAttribute="trailing" constant="10" id="lQM-Is-b8x"/>
+                </constraints>
+            </tableViewCellContentView>
+            <point key="canvasLocation" x="196" y="327.5"/>
+        </tableViewCell>
+    </objects>
+</document>

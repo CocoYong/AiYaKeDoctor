@@ -1,0 +1,160 @@
+//
+//  MessageListViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/28.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "MessageListViewController.h"
+#import "MessageTableViewCell.h"
+#import "TabBarViewController.h"
+#import "UIImageView+WebCache.h"
+#import "EaseMob.h"
+@interface MessageListViewController ()
+{
+    CWHttpRequest *request;
+    NSMutableArray *friendArray;
+    NSInteger morePage;
+    NSInteger totalDataNum;
+}
+@property (weak, nonatomic) IBOutlet UITableView *baseTable;
+@end
+
+@implementation MessageListViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"我的消息"];
+    [self loginInHuanxinChat];
+    self.edgesForExtendedLayout=UIRectEdgeNone;
+    self.automaticallyAdjustsScrollViewInsets=NO;
+    [self.baseTable registerNib:[UINib nibWithNibName:@"MessageTableViewCell" bundle:nil] forCellReuseIdentifier:@"MessageTableViewCell"];
+    [self getFriendList];
+    [self.baseTable addLegendHeaderWithRefreshingTarget:self refreshingAction:@selector(refreshData)];
+    [self.baseTable addLegendFooterWithRefreshingTarget:self refreshingAction:@selector(loadMoreData)];
+}
+-(void)loginInHuanxinChat
+{
+    BOOL isAutoLogin =[[EaseMob sharedInstance].chatManager isAutoLoginEnabled];
+    if (!isAutoLogin){
+        [[EaseMob sharedInstance].chatManager asyncLoginWithUsername:[[CWNSFileUtil sharedInstance] getNSModelFromUserDefaultsWithKey:@"HuserName"] password:[[CWNSFileUtil sharedInstance] getNSModelFromUserDefaultsWithKey:@"Hpassword"] completion:^(NSDictionary *loginInfo, EMError *error) {
+            if (!error) {
+               // 设置自动登录
+                [[EaseMob sharedInstance].chatManager setIsAutoLoginEnabled:YES];
+              }
+        } onQueue:nil];
+    }
+}
+-(void)getFriendList
+{
+    [[EaseMob sharedInstance].chatManager asyncFetchBuddyListWithCompletion:^(NSArray *buddyList, EMError *error) {
+        if (!error) {
+            friendArray=[buddyList mutableCopy];
+        }
+    } onQueue:nil];
+}
+-(void)getMessageFromChat:(NSString*)friendID
+{
+//   EMConversation *conversation = [[EaseMob sharedInstance].chatManager conversationForChatter:@"8001" conversationType:eConversationTypeChat];
+}
+-(void)refreshData
+{
+    [self getServiceDataFromServiceType:@"0" andPage:1 andRefresh:YES];
+}
+-(void)loadMoreData
+{
+    morePage++;
+    if (friendArray.count==totalDataNum){
+        [self.baseTable.footer noticeNoMoreData];
+    }else
+    {
+        [self getServiceDataFromServiceType:@"0" andPage:morePage andRefresh:NO];
+    }
+}
+-(void)getServiceDataFromServiceType:(NSString*)status andPage:(NSInteger)page andRefresh:(BOOL)refresh
+{
+    if ([Reachability checkNetCanUse]){
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+       NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary = @{@"status":status, @"SessionID": sessionID,@"page":[NSNumber numberWithInteger:page],@"size":@"5"};
+         NSLog(@"jsonDictionary====%@",jsonDictionary);
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, GetFiend] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+               NSLog(@"sessionID😳😳😳😳😳😳😳😳😳😳=======%@",[responseObject valueForKeyWithOutNSNull:@"SessionID"]);
+            if ([code integerValue]==0){
+                UserManager *userManager=[UserManager currentUserManager];
+                 userManager.sessionID=[responseObject objectForKey:@"SessionID"];
+                
+                [userManager synchronize];
+                totalDataNum=[[[responseObject objectForKey:@"data"] objectForKey:@"total"] integerValue];
+                if (refresh) {
+                    [friendArray removeAllObjects];
+//                    friendArray=[[[responseObject objectForKey:@"data"] objectForKey:@"rs"] mutableCopy];
+                    [self.baseTable.header endRefreshing];
+                }else
+                {
+//                    [friendArray addObjectsFromArray:[[responseObject objectForKey:@"data"] objectForKey:@"rs"]];
+                }
+                [self.baseTable reloadData];
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"登录接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.tabBarController.tabBar.hidden=YES;
+    [(TabBarViewController*)self.tabBarController  tabbarImageView].hidden=NO;
+}
+#pragma mark----tableViewDelegate-------
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return friendArray.count;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 73;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    MessageTableViewCell *cell=nil;
+    cell=[tableView dequeueReusableCellWithIdentifier:@"MessageTableViewCell"];
+    [self configerTableViewCell:cell withIndexPath:indexPath];
+    tableView.separatorStyle=UITableViewCellSeparatorStyleNone;
+    return cell;
+}
+-(void)configerTableViewCell:(MessageTableViewCell*)cell withIndexPath:(NSIndexPath*)indexPath
+{
+    [cell.imageView sd_setImageWithURL:[NSURL URLWithString:[[friendArray objectAtIndex:indexPath.row] objectForKey:@"picUrl"]] placeholderImage:[UIImage imageNamed:@"0_201"] options:SDWebImageDelayPlaceholder];
+    cell.nameLabel=[[friendArray objectAtIndex:indexPath.row] objectForKey:@"name"];
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    return 10;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+@end

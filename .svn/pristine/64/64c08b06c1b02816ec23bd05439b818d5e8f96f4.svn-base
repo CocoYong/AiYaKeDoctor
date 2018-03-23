@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7531" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="AnnouncementDetailViewController">
+            <connections>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="l4F-ia-zEb">
+                    <rect key="frame" x="0.0" y="-21" width="42" height="21"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="aRb-wq-R0R">
+                    <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="characterWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PUD-4q-7NZ">
+                            <rect key="frame" x="0.0" y="-21" width="42" height="21"/>
+                            <string key="text">活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告活动公告</string>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstItem="PUD-4q-7NZ" firstAttribute="leading" secondItem="aRb-wq-R0R" secondAttribute="leading" constant="10" id="DMG-3b-Wdo"/>
+                        <constraint firstItem="PUD-4q-7NZ" firstAttribute="top" secondItem="aRb-wq-R0R" secondAttribute="top" constant="10" id="Omg-bp-eNV">
+                            <variation key="heightClass=regular-widthClass=compact" constant="11"/>
+                        </constraint>
+                        <constraint firstAttribute="trailing" secondItem="PUD-4q-7NZ" secondAttribute="trailing" constant="10" id="iYO-2Y-3Pz"/>
+                        <constraint firstAttribute="bottom" secondItem="PUD-4q-7NZ" secondAttribute="bottom" constant="10" id="ldz-VZ-WD1">
+                            <variation key="heightClass=regular-widthClass=compact" constant="9"/>
+                        </constraint>
+                    </constraints>
+                    <variation key="default">
+                        <mask key="subviews">
+                            <exclude reference="PUD-4q-7NZ"/>
+                        </mask>
+                        <mask key="constraints">
+                            <exclude reference="DMG-3b-Wdo"/>
+                            <exclude reference="Omg-bp-eNV"/>
+                            <exclude reference="iYO-2Y-3Pz"/>
+                            <exclude reference="ldz-VZ-WD1"/>
+                        </mask>
+                    </variation>
+                    <variation key="heightClass=regular-widthClass=compact">
+                        <mask key="subviews">
+                            <include reference="PUD-4q-7NZ"/>
+                        </mask>
+                        <mask key="constraints">
+                            <include reference="DMG-3b-Wdo"/>
+                            <include reference="Omg-bp-eNV"/>
+                            <include reference="iYO-2Y-3Pz"/>
+                            <include reference="ldz-VZ-WD1"/>
+                        </mask>
+                    </variation>
+                </view>
+            </subviews>
+            <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="l4F-ia-zEb" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="10" id="737-af-gpU">
+                    <variation key="heightClass=regular-widthClass=compact" constant="60"/>
+                </constraint>
+                <constraint firstAttribute="trailing" secondItem="aRb-wq-R0R" secondAttribute="trailing" constant="10" id="DQ6-CP-Zog"/>
+                <constraint firstAttribute="centerX" secondItem="l4F-ia-zEb" secondAttribute="centerX" id="EGQ-1G-5lF"/>
+                <constraint firstItem="aRb-wq-R0R" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="40" id="cDG-X8-5K4">
+                    <variation key="heightClass=regular-widthClass=compact" constant="90"/>
+                </constraint>
+                <constraint firstItem="aRb-wq-R0R" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="10" id="hsK-4d-F9Y"/>
+            </constraints>
+            <variation key="default">
+                <mask key="subviews">
+                    <exclude reference="l4F-ia-zEb"/>
+                    <exclude reference="aRb-wq-R0R"/>
+                </mask>
+                <mask key="constraints">
+                    <exclude reference="737-af-gpU"/>
+                    <exclude reference="EGQ-1G-5lF"/>
+                    <exclude reference="DQ6-CP-Zog"/>
+                    <exclude reference="cDG-X8-5K4"/>
+                    <exclude reference="hsK-4d-F9Y"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=regular-widthClass=compact">
+                <mask key="subviews">
+                    <include reference="l4F-ia-zEb"/>
+                    <include reference="aRb-wq-R0R"/>
+                </mask>
+                <mask key="constraints">
+                    <include reference="737-af-gpU"/>
+                    <include reference="EGQ-1G-5lF"/>
+                    <include reference="DQ6-CP-Zog"/>
+                    <include reference="cDG-X8-5K4"/>
+                    <include reference="hsK-4d-F9Y"/>
+                </mask>
+            </variation>
+        </view>
+    </objects>
+</document>

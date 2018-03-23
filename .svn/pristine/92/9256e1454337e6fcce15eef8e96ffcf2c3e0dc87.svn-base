@@ -1,0 +1,311 @@
+//
+//  TabBarViewController.m
+//  YSProject
+//
+//  Created by MrZhang on 15/6/12.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "TabBarViewController.h"
+#import "HomeViewController.h"
+#import "PendingViewController.h"
+#import "ChatListViewController.h"
+#import "MineViewController.h"
+#import "LoginViewController.h"
+#import "EaseMob.h"
+#import "TTGlobalUICommon.h"
+#import "MyMD5.h"
+@interface TabBarViewController ()
+{
+    CWHttpRequest *request;
+}
+@property(nonatomic,strong)UIButton *lastSelectedButt;
+@property(nonatomic,strong)NSString *waitHandleNum;
+@property(nonatomic,assign)NSInteger unreadMesageNum;
+@end
+
+@implementation TabBarViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self registerHuanxinChat];
+    [self getOrderNewNum];
+    [self creatViewControllers];
+}
+-(void)getOrderNewNum
+{
+    if ([Reachability checkNetCanUse]){
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+        NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary = @{@"SessionID": sessionID};
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, OrderNewNum] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject){
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+            [UserManager currentUserManager].sessionID=[responseObject objectForKey:@"SessionID"];
+            if ([code integerValue]==0){
+                self.waitHandleNum=[NSString stringWithFormat:@"%@",[[responseObject objectForKey:@"data"] objectForKey:@"val"]];
+                UILabel *tempLabel=(UILabel*)[[_tabbarImageView viewWithTag:20] viewWithTag:21];
+                tempLabel.text=self.waitHandleNum;
+                if ([tempLabel.text integerValue]==0) {
+                    [_tabbarImageView viewWithTag:20].hidden=YES;
+                }
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"登录接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+-(void)registerHuanxinChat
+{
+   /*
+    [[EaseMob sharedInstance].chatManager asyncLoginWithUsername:[UserManager currentUserManager].user.uid
+                                                        password:[MyMD5 md5:[UserManager currentUserManager].user.hxPassword]
+                                                      completion:
+     ^(NSDictionary *loginInfo, EMError *error){
+         NSLog(@"loginInfo😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😛😪😪😭😭😅😩😖😋😴😴😰😰😰😩😩😫😇😶😇😇😇😇😇😇😇😇===========%@",loginInfo);
+         if (loginInfo && !error) {
+             [[EaseMob sharedInstance].chatManager setIsAutoLoginEnabled:YES];
+             [[NSNotificationCenter defaultCenter] postNotificationName:KNOTIFICATION_LOGINCHANGE object:@YES];
+         }else {
+             
+              NSLog(@"errorCode====%ld",(long)error.errorCode);
+             switch (error.errorCode) {
+                 case EMErrorServerNotReachable: {
+                     TTAlertNoTitle(@"连接服务器失败,无法正常聊天,请重新登录");
+                 }
+                     break;
+                 case EMErrorServerAuthenticationFailure: {
+                     TTAlertNoTitle(@"用户名或密码错误,无法正常聊天,请重新登录");
+//                     [self registEaseMob:userid];
+                 }
+                     break;
+                 case EMErrorServerTimeout: {
+                     TTAlertNoTitle(@"连接服务器超时,无法正常聊天,请重新登录");
+                 }
+                     break;
+                 default:{
+                     //                     [self clearLocalData];
+                     TTAlertNoTitle(@"登录失败,无法正常聊天,请重新登录");
+                 }
+                     
+                     break;
+             }
+             
+             
+         }
+     } onQueue:nil];
+    */
+   /*
+    [[EaseMob sharedInstance].chatManager asyncRegisterNewAccount:[UserManager currentUserManager].loginName password:[UserManager currentUserManager].user.hxPassword withCompletion:^(NSString *username, NSString *password, EMError *error) {
+        if !error) {
+            [[CWNSFileUtil sharedInstance] setNSModelToUserDefaults:username withKey:@"HuserName"];
+            [[CWNSFileUtil sharedInstance] setNSModelToUserDefaults:password withKey:@"Hpassword"];
+        }else
+        {
+            switch (error.errorCode) {
+                case EMErrorServerNotReachable: {
+                    //                     [self clearLocalData];
+                    TTAlertNoTitle(@"连接服务器失败,无法正常聊天,请重新登录");
+                }
+                    break;
+                case EMErrorServerAuthenticationFailure: {
+                    TTAlertNoTitle(@"用户名或密码错误,无法正常聊天,请重新登录");
+                    [self registEaseMob:userid];
+                }
+                    break;
+                case EMErrorServerTimeout: {
+                    TTAlertNoTitle(@"连接服务器超时,无法正常聊天,请重新登录");
+                }
+                    break;
+                default:{
+                    //                     [self clearLocalData];
+                    TTAlertNoTitle(@"登录失败,无法正常聊天,请重新登录");
+                }
+                    
+                    break;
+            }
+  
+        }
+    } onQueue:nil];
+    */
+    
+}
+-(void)creatViewControllers
+{
+    HomeViewController *homeController=[[HomeViewController alloc]init];
+    UINavigationController *homeNav=[[UINavigationController alloc]initWithRootViewController:homeController];
+    homeNav.navigationBar.hidden=YES;
+    
+    PendingViewController *pendingController=[[PendingViewController alloc]init];
+    UINavigationController *pendNav=[[UINavigationController alloc]initWithRootViewController:pendingController];
+    pendNav.navigationBar.hidden=YES;
+    
+    ChatListViewController *messageListController=[[ChatListViewController alloc]init];
+    UINavigationController *messageNav=[[UINavigationController alloc]initWithRootViewController:messageListController];
+    messageNav.navigationBar.hidden=YES;
+    
+    MineViewController *mineController=[[MineViewController alloc]init];
+    UINavigationController *mineNav=[[UINavigationController alloc]initWithRootViewController:mineController];
+    mineNav.navigationBar.hidden=YES;
+    self.viewControllers=@[homeNav,pendNav,messageNav,mineNav];
+    [self createTabBar];
+}
+-(void)createTabBar
+{
+    self.tabBar.hidden=YES;
+    NSArray *normalImageArray=@[@"tab0_narmal",@"tab1_normal",@"tab2_narmal",@"tab3_narmal"];
+    NSArray *selectedImageArray=@[@"tab0_selected",@"tab1_selected",@"tab2_selected",@"tab3_selected"];
+    NSArray *itemTitleArray=@[@"首页",@"我的预约",@"我的消息",@"个人中心"];
+    _tabbarImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    _tabbarImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:_tabbarImageView];
+    _tabbarImageView.userInteractionEnabled=YES;
+    CGFloat buttWidth=kSCREEN_WIDTH/4;
+    for (int i=0; i<4; i++) {
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(i*buttWidth, 20, buttWidth, 40);
+    itemButt.tag=(i+1)*100;
+    [itemButt setImage:[UIImage imageNamed:[normalImageArray objectAtIndex:i]] forState:UIControlStateNormal];
+     [itemButt setImage:[UIImage imageNamed:[selectedImageArray objectAtIndex:i]] forState:UIControlStateSelected];
+    [itemButt setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [itemButt addTarget:self action:@selector(tabbarItemSelected:) forControlEvents:UIControlEventTouchUpInside];
+    [_tabbarImageView addSubview:itemButt];
+    //我的预约和我的消息的bage。。。。。
+        if (i==1||i==2) {
+        UIImageView *redImageView=[[UIImageView alloc]initWithFrame:CGRectMake(CGRectGetMidX(itemButt.frame)+5, CGRectGetMidY(itemButt.frame)+5, 20, 20)];
+        redImageView.image=[UIImage imageNamed:@"0_125"];
+        redImageView.tag=(i+1)*10;
+        UILabel *bageLabel=[[UILabel alloc]initWithFrame:CGRectMake(0, 0, 20, 20)];
+        bageLabel.tag=(i+1)*10+1;
+        bageLabel.textColor=[UIColor whiteColor];
+        bageLabel.font=[UIFont systemFontOfSize:12];
+        bageLabel.textAlignment=NSTextAlignmentCenter;
+        [redImageView addSubview:bageLabel];
+        [_tabbarImageView addSubview:redImageView];
+        }
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(i*buttWidth, 60, buttWidth, 20)];
+        titleLabel.text=[itemTitleArray objectAtIndex:i];
+        titleLabel.textColor=[UIColor whiteColor];
+        titleLabel.textAlignment=NSTextAlignmentCenter;
+        titleLabel.font=[UIFont systemFontOfSize:10];
+        [_tabbarImageView addSubview:titleLabel];
+        if (0 == i) {
+            itemButt.selected = YES;
+            self.lastSelectedButt = itemButt;  //设置该按钮为选中的按钮
+        }
+    }
+}
+-(void)tabbarItemSelected:(UIButton*)butt
+{
+    self.lastSelectedButt.selected=NO;
+    butt.selected=YES;
+    self.lastSelectedButt=butt;
+    self.selectedIndex=butt.tag/100-1;
+}
+-(void)selectItemIndex:(NSInteger)index
+{
+    for (UIView *view in _tabbarImageView.subviews) {
+        if (view.tag/100-1==index) {
+            [self performSelector:@selector(tabbarItemSelected:) withObject:(UIButton*)view];
+            
+        }
+    }
+}
+-(void)setImageAndTitleEdgeInset:(UIButton*)butt
+{
+    CGPoint buttonBoundsCenter = CGPointMake(CGRectGetMidX(butt.bounds), CGRectGetMidY(butt.bounds));
+    
+    // 找出imageView最终的center
+    
+    CGPoint endImageViewCenter = CGPointMake(buttonBoundsCenter.x, CGRectGetMidY(butt.imageView.bounds));
+    
+    // 找出titleLabel最终的center
+    
+    CGPoint endTitleLabelCenter = CGPointMake(buttonBoundsCenter.x, CGRectGetHeight(butt.bounds)-CGRectGetMidY(butt.titleLabel.bounds));
+    
+    // 取得imageView最初的center
+    
+    CGPoint startImageViewCenter = butt.imageView.center;
+    
+    // 取得titleLabel最初的center
+    
+    CGPoint startTitleLabelCenter = butt.titleLabel.center;
+    
+    // 设置imageEdgeInsets
+    
+    CGFloat imageEdgeInsetsTop = endImageViewCenter.y - startImageViewCenter.y;
+    
+    CGFloat imageEdgeInsetsLeft = endImageViewCenter.x - startImageViewCenter.x;
+    
+    CGFloat imageEdgeInsetsBottom = -imageEdgeInsetsTop;
+    
+    CGFloat imageEdgeInsetsRight = -imageEdgeInsetsLeft;
+    
+    butt.imageEdgeInsets = UIEdgeInsetsMake(imageEdgeInsetsTop, imageEdgeInsetsLeft, imageEdgeInsetsBottom, imageEdgeInsetsRight);
+    
+    // 设置titleEdgeInsets
+    
+    CGFloat titleEdgeInsetsTop = endTitleLabelCenter.y-startTitleLabelCenter.y;
+    
+    CGFloat titleEdgeInsetsLeft = endTitleLabelCenter.x - startTitleLabelCenter.x;
+    
+    CGFloat titleEdgeInsetsBottom = -titleEdgeInsetsTop;
+    
+    CGFloat titleEdgeInsetsRight = -titleEdgeInsetsLeft;
+    
+    butt.titleEdgeInsets = UIEdgeInsetsMake(titleEdgeInsetsTop, titleEdgeInsetsLeft, titleEdgeInsetsBottom, titleEdgeInsetsRight);
+}
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+     NSMutableArray *array=[self loadDataSource];
+    for (EMConversation *conversation in array) {
+        self.unreadMesageNum+=conversation.unreadMessagesCount;
+    }
+    if (self.unreadMesageNum==0){
+        [self.tabbarImageView viewWithTag:30].hidden=YES;
+    }else
+    {
+        UILabel *tempLabel=(UILabel*)[[self.tabbarImageView viewWithTag:30] viewWithTag:31];
+        tempLabel.text= [NSString stringWithFormat:@"%d",(int)self.unreadMesageNum];
+    }
+}
+- (NSMutableArray *)loadDataSource
+{
+    NSMutableArray *ret = nil;
+    NSArray *conversations = [[EaseMob sharedInstance].chatManager conversations];
+    NSArray* sorte = [conversations sortedArrayUsingComparator:
+                      ^(EMConversation *obj1, EMConversation* obj2){
+                          EMMessage *message1 = [obj1 latestMessage];
+                          EMMessage *message2 = [obj2 latestMessage];
+                          if(message1.timestamp > message2.timestamp) {
+                              return(NSComparisonResult)NSOrderedAscending;
+                          }else {
+                              return(NSComparisonResult)NSOrderedDescending;
+                          }
+                      }];
+    ret = [[NSMutableArray alloc] initWithArray:sorte];
+    return ret;
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

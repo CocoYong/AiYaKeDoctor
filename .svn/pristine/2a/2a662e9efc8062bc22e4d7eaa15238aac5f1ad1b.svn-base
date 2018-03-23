@@ -1,0 +1,208 @@
+//
+//  EvaluatePatientViewController.m
+//  YSProject
+//
+//  Created by MrZhang on 15/6/19.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "EvaluatePatientViewController.h"
+
+@interface EvaluatePatientViewController ()
+{
+    CWHttpRequest *request;
+}
+@property (weak, nonatomic) IBOutlet UIButton *oneButt;
+@property (weak, nonatomic) IBOutlet UIButton *twoButt;
+@property (weak, nonatomic) IBOutlet UIButton *threeButt;
+@property (weak, nonatomic) IBOutlet UIButton *fourButt;
+@property (weak, nonatomic) IBOutlet UIButton *fiveButt;
+@property (weak, nonatomic) IBOutlet UITextView *conmentTextView;
+@property(nonatomic,strong) NSString *ugrad;
+@end
+
+@implementation EvaluatePatientViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"评价患者"];
+    [self addBackButt];
+    [self creatUIItem];
+}
+-(void)creatUIItem
+{
+    UIImageView* OneButtImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    OneButtImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:OneButtImageView];
+    OneButtImageView.userInteractionEnabled=YES;
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(kSCREEN_WIDTH/2-20, 20, 40, 40);
+    [itemButt setImage:[UIImage imageNamed:@"0_173"] forState:UIControlStateNormal];
+    [itemButt addTarget:self action:@selector(sureButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    [OneButtImageView addSubview:itemButt];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(kSCREEN_WIDTH/2-20, 60, 40, 20)];
+    titleLabel.text=@"确定";
+    titleLabel.textColor=[UIColor whiteColor];
+    titleLabel.textAlignment=NSTextAlignmentCenter;
+    titleLabel.font=[UIFont systemFontOfSize:10];
+    [OneButtImageView addSubview:titleLabel];
+    
+    self.conmentTextView.layer.cornerRadius=5.0f;
+    self.conmentTextView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    self.conmentTextView.layer.borderWidth=1.0f;
+    
+    self.oneButt.selected=YES;
+    self.twoButt.selected=YES;
+    self.threeButt.selected=YES;
+    self.fourButt.selected=YES;
+}
+-(void)sureButtonAction
+{
+    [self evaluatePatientRequest];
+}
+- (IBAction)oneButtAction:(UIButton *)sender {
+    if (sender.selected) {
+        if (!_twoButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_183"] forState:UIControlStateNormal];
+        }else
+        {
+            return;
+        }
+    }else
+    {
+        sender.selected=!sender.selected;
+       [sender setBackgroundImage:[UIImage imageNamed:@"0_181"] forState:UIControlStateNormal];
+    }
+}
+- (IBAction)twoButtAction:(UIButton *)sender {
+    if (sender.selected) {
+        if (!_threeButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_183"] forState:UIControlStateNormal];
+        }else
+        {
+            return;
+        }
+    }else
+    {
+        if (_oneButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_181"] forState:UIControlStateNormal];
+        }
+    }
+}
+- (IBAction)threeButtAction:(UIButton *)sender {
+    if (sender.selected) {
+        if (!_fourButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_183"] forState:UIControlStateNormal];
+        }else
+        {
+            return;
+        }
+    }else
+    {
+        if (_twoButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_181"] forState:UIControlStateNormal];
+        }
+    }
+
+}
+- (IBAction)fourButtAction:(UIButton *)sender {
+    if (sender.selected) {
+        if (!_fiveButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_183"] forState:UIControlStateNormal];
+        }else
+        {
+            return;
+        }
+    }else
+    {
+        if (_threeButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_181"] forState:UIControlStateNormal];
+        }
+    }
+
+}
+- (IBAction)fiveButtAction:(UIButton *)sender {
+    if (sender.selected) {
+        sender.selected=!sender.selected;
+        [sender setBackgroundImage:[UIImage imageNamed:@"0_183"] forState:UIControlStateNormal];
+    }else
+    {
+        if (_fourButt.selected) {
+            sender.selected=!sender.selected;
+            [sender setBackgroundImage:[UIImage imageNamed:@"0_181"] forState:UIControlStateNormal];
+        }
+    }
+}
+-(void)evaluatePatientRequest
+{
+    if (_oneButt.selected) {
+        self.ugrad=@"1";
+    }else{
+        self.ugrad=@"0";
+    }
+    if (_twoButt.selected) {
+        self.ugrad=@"2";
+    }if (_threeButt.selected) {
+        self.ugrad=@"3";
+    }if (_fourButt.selected) {
+        self.ugrad=@"4";
+    }if (_fiveButt.selected) {
+        self.ugrad=@"5";
+    }
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+       NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary;
+        if (_conmentTextView.text==nil||[_conmentTextView.text isEqualToString:@""]) {
+         jsonDictionary= @{@"id":[_orderDic objectForKey:@"id"], @"SessionID": sessionID,@"uGrade":self.ugrad};
+        }else
+        {
+          jsonDictionary= @{@"id":[_orderDic objectForKey:@"id"], @"SessionID": sessionID,@"uGrade":self.ugrad,@"uComment":_conmentTextView.text};
+        }
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, CommentOrder] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+           [UserManager currentUserManager].sessionID=[responseObject objectForKey:@"SessionID"];
+            if ([code integerValue]==0){
+               
+                NSLog(@"responseDic====%@",responseObject);
+                if (self.delegate&&[self.delegate respondsToSelector:@selector(passEvaluatPatientDataToFrontController:)]) {
+                    NSDictionary *passDic=@{@"uGrade":@"-1",@"uComment":_conmentTextView.text};
+                    [self.delegate passEvaluatPatientDataToFrontController:passDic];
+                    [self.navigationController popViewControllerAnimated:YES];
+                }
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"完成订单接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

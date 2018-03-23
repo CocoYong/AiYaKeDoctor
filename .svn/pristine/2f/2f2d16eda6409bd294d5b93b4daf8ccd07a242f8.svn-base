@@ -1,0 +1,168 @@
+//
+//  DoctorViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/30.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "DoctorViewController.h"
+#import "UIImageView+WebCache.h"
+#import "EditDoctorInfoController.h"
+#import  <QuartzCore/QuartzCore.h>
+#import "UserModel.h"
+@interface DoctorViewController ()
+{
+    UserModel* userModel;
+}
+@property (weak, nonatomic) IBOutlet UITableView *baseTable;
+@end
+
+@implementation DoctorViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"医师简介"];
+    [self addBackButt];
+    [self creatUIItem];
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+    self.automaticallyAdjustsScrollViewInsets=NO;
+//    NSDictionary *userDic=(NSDictionary*)[[CWNSFileUtil sharedInstance]getNSModelFromUserDefaultsWithKey:@"userData"];
+//    dataDic=[userDic objectForKey:@"data"];
+    userModel=[UserManager currentUserManager].user;
+    
+
+}
+
+
+#pragma mark----tableViewDelegate-------
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 13;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row==5) {
+        return 80;
+    }
+    return 44;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *reuseIdentifier=@"cellIdentifier";
+    UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    if (!cell) {
+        cell=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+    }
+    cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    [self configerTableViewCell:cell withIndexPath:indexPath];
+    return cell;
+}
+-(void)configerTableViewCell:(UITableViewCell*)cell withIndexPath:(NSIndexPath*)indexPath
+{
+    switch (indexPath.row){
+        case 0:
+            cell.textLabel.text=[NSString stringWithFormat:@"真实姓名:%@",userModel.name];
+            break;
+        case 1:
+            if ([userModel.sex isEqualToString:@"0"]) {
+            cell.textLabel.text=[NSString stringWithFormat:@"性别:%@",@"女"];
+            }else
+            {
+            cell.textLabel.text=[NSString stringWithFormat:@"性别:%@",@"男"];
+            }
+            break;
+        case 2:
+             cell.textLabel.text=[NSString stringWithFormat:@"医师职业证书号:%@",userModel.certCode];
+            break;
+        case 3:
+             cell.textLabel.text=[NSString stringWithFormat:@"职称:%@",userModel.titleName];
+            break;
+        case 4:
+             cell.textLabel.text=[NSString stringWithFormat:@"医师职业证书照片:"];
+            break;
+        case 5:
+        {
+            NSArray *licenseArray=userModel.licenseList;
+            float x = 20;
+            float y = 0;
+            float imageW = 60;
+            float offW= 10;
+            if ([licenseArray count]== 0) {
+                cell.hidden=YES;
+            }else{
+                cell.hidden = NO;
+                
+            }
+              for (int i=0;i <[licenseArray count]; i++) {
+                UIImageView *licenseImageView = [[UIImageView alloc]init];
+                licenseImageView.tag = i;
+                licenseImageView.frame = CGRectMake(i%4*(offW+imageW) + x, y + floor(i/4)*(offW+imageW) , imageW, imageW);
+                NSString *urlString=[NSString stringWithFormat:@"%@",[[licenseArray objectAtIndex:i] valueForKey:@"picUrl"]];
+                [licenseImageView sd_setImageWithURL:[NSURL URLWithString:urlString]placeholderImage:nil options:SDWebImageCacheMemoryOnly];
+                [cell.contentView addSubview:licenseImageView];
+            }
+        }
+            break;
+        case 6:
+            cell.textLabel.text=[NSString stringWithFormat:@"手机号:%@",userModel.tel];
+            break;
+        case 7:
+             cell.textLabel.text=[NSString stringWithFormat:@"门诊名称:%@",userModel.company];
+            break;
+        case 8:
+             cell.textLabel.text=[NSString stringWithFormat:@"门诊电话:%@",userModel.tel];
+            break;
+        case 9:
+             cell.textLabel.text=[NSString stringWithFormat:@"所在地区:%@",userModel.area3];
+            break;
+        case 10:
+             cell.textLabel.text=[NSString stringWithFormat:@"门诊地址:%@",userModel.address];
+            break;
+        case 11:
+             cell.textLabel.text=[NSString stringWithFormat:@"医生简介:%@",userModel.content];
+            break;
+        case 12:
+            cell.textLabel.text=userModel.content;
+            cell.textLabel.numberOfLines=0;
+            cell.textLabel.lineBreakMode=NSLineBreakByWordWrapping;
+            break;
+              default:
+            break;
+    }
+}
+-(void)creatUIItem
+{
+    UIImageView* OneButtImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    OneButtImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:OneButtImageView];
+    OneButtImageView.userInteractionEnabled=YES;
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(kSCREEN_WIDTH/2-20, 20, 40, 40);
+    [itemButt setImage:[UIImage imageNamed:@"0_310"] forState:UIControlStateNormal];
+    [itemButt setImage:[UIImage imageNamed:@""] forState:UIControlStateSelected];
+    [itemButt addTarget:self action:@selector(editButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    [OneButtImageView addSubview:itemButt];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(kSCREEN_WIDTH/2-20, 60, 40, 20)];
+    titleLabel.text=@"编辑";
+    titleLabel.textColor=[UIColor whiteColor];
+    titleLabel.textAlignment=NSTextAlignmentCenter;
+    titleLabel.font=[UIFont systemFontOfSize:10];
+    [OneButtImageView addSubview:titleLabel];
+}
+-(void)editButtonAction
+{
+    EditDoctorInfoController *editInfoOfDoctor=[[EditDoctorInfoController alloc]init];
+    [self.navigationController pushViewController:editInfoOfDoctor animated:YES];
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+@end

@@ -1,0 +1,191 @@
+//
+//  ChangeWaitingPendingTimeController.m
+//  YSProject
+//
+//  Created by MrZhang on 15/6/15.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "ChangeWaitingPendingTimeController.h"
+#import "EventKitDataSource.h"
+#import "Kal.h"
+#import "NSDate+Convenience.h"
+#import "WorkTimeModel.h"
+#import "UserModel.h"
+#import "TimeModel.h"
+@interface ChangeWaitingPendingTimeController ()<UITableViewDelegate, KalViewControllerDelegate>
+{
+     KalViewController *kal;
+    CWHttpRequest *request;
+    UserModel *userModel;
+}
+@property(nonatomic,strong)NSDate *userDay;
+@property(nonatomic,strong)NSString *userTimeString;
+@property(nonatomic,strong)NSString *userTime2;
+@property (nonatomic,strong)WorkTimeModel *displayDateModel;
+@end
+
+@implementation ChangeWaitingPendingTimeController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"修改预约时间"];
+     self.edgesForExtendedLayout=UIRectEdgeNone;
+    [self addBackButt];
+    [self creatUIItem];
+    
+    // 设置时间格式
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"yyyy-MM-dd";
+    _userDay=[formatter dateFromString:[_orderDictionary objectForKey:@"uDay"]];
+    NSLog(@"_uday===%@",_userDay);
+    _userTimeString=[NSString stringWithFormat:@"%@-%@",[_orderDictionary objectForKey:@"uTime1"],[_orderDictionary objectForKey:@"uTime2"]];
+    
+    userModel=[UserManager currentUserManager].user;
+    for (WorkTimeModel *workModel in userModel.workTimeList) {
+        NSDate *dateOne=[formatter dateFromString:workModel.date1];
+        NSDate *dateTwo=[formatter dateFromString:workModel.date2];
+        if (([_userDay compare:dateOne]==NSOrderedDescending||[_userDay compare:dateOne]==NSOrderedSame)&&([_userDay compare:dateTwo]==NSOrderedAscending||[_userDay compare:dateTwo]==NSOrderedSame)) {
+            _displayDateModel=workModel;
+        }
+    }
+    kal = [[KalViewController alloc] initWithSelectionMode:KalSelectionModeRange];
+    kal.selectedDate = [NSDate dateStartOfDay:[[NSDate date] offsetDay:1]];
+    kal.selectedDelegate = self;
+    //    kal.delegate = self;
+    //    dataSource = [[EventKitDataSource alloc] init];
+    //    kal.dataSource = dataSource;
+    kal.minAvailableDate = [NSDate dateStartOfDay:[[NSDate date] offsetDay:0]];
+    kal.maxAVailableDate = [kal.minAvailableDate offsetDay:MAXFLOAT];
+    //    [self.view addSubview:kal.view];
+    UIView *contentView = [[UIView alloc] initWithFrame:CGRectMake(10, 60, kSCREEN_WIDTH - 20, 200)];
+    kal.view.layer.cornerRadius=5.0f;
+    [contentView addSubview:kal.view];
+    [self.view addSubview:contentView];
+}
+- (void)selectedData:(NSDate *)date {
+    NSLog(@"dasfdsafsdafsadf----%@", date);
+}
+-(void)creatUIItem
+{
+    UIImageView* OneButtImageView=[[UIImageView alloc]initWithFrame:CGRectMake(0, kSCREEN_HEIGHT-80, kSCREEN_WIDTH, 80)];
+    OneButtImageView.image=[UIImage imageNamed:@"0_359"];
+    [self.view addSubview:OneButtImageView];
+    
+    UIButton *itemButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    itemButt.frame=CGRectMake(kSCREEN_WIDTH/2-20, 20, 40, 40);
+    [itemButt setImage:[UIImage imageNamed:@"0_173"] forState:UIControlStateNormal];
+    [itemButt addTarget:self action:@selector(sureButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    [OneButtImageView addSubview:itemButt];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(kSCREEN_WIDTH/2-20, 60, 40, 20)];
+    titleLabel.text=@"确定";
+    titleLabel.textColor=[UIColor whiteColor];
+    titleLabel.textAlignment=NSTextAlignmentCenter;
+    titleLabel.font=[UIFont systemFontOfSize:10];
+    [OneButtImageView addSubview:titleLabel];
+    
+    //    self.contentView.layer.cornerRadius=5.0f;
+    //    self.contentView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    //    self.contentView.layer.borderWidth=1.0f;
+}
+- (void)changeUserInfo{
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+        NSString *sessionID=[UserManager currentUserManager].sessionID;
+//        NSDictionary *jsonDictionary = @{@"company":_companyField.text,@"tel":_telField.text,@"area3": _areaField.text,@"address":_addressField.text,@"content":_contentView.text==nil?@"":_contentView.text,@"SessionID":sessionID};
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, EditUserInfo] path:nil parameters:nil successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            NSLog(@"服务项目接口成功%@", responseObject);
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+            [UserManager currentUserManager].sessionID=[responseObject objectForKey:@"SessionID"];
+            if ([code integerValue]==0) {
+                [[UpdateUserData shareInstance] updateUserInfo];
+                [SVProgressHUD showSuccessWithStatus:@"修改成功"];
+                [self.navigationController popViewControllerAnimated:YES];
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"服务项目接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+
+
+-(void)sureButtonAction
+{
+    
+}
+#pragma mark----tableViewDelegate-------
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return _displayDateModel.time.count;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 30;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *reuseIdentifier=@"cellIdentifier";
+    UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    if (!cell) {
+        cell=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+    }else
+    {
+        for (id view in cell.contentView.subviews) {
+            [view removeFromSuperview];
+        }
+    }
+    [self configerTableViewCell:cell withIndexPath:indexPath];
+    return cell;
+}
+-(void)configerTableViewCell:(UITableViewCell*)cell withIndexPath:(NSIndexPath*)indexPath
+{
+    UIButton *selectedButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    selectedButt.frame=CGRectMake(kSCREEN_WIDTH-60, 5, 20, 20);
+    selectedButt.tag=indexPath.row;
+    [selectedButt setBackgroundImage:[UIImage imageNamed:@"0_74"] forState:UIControlStateNormal];
+    [selectedButt setBackgroundImage:[UIImage imageNamed:@"0_71"] forState:UIControlStateSelected];
+    [selectedButt addTarget:self action:@selector(timeSelected:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.contentView addSubview:selectedButt];
+    
+    TimeModel *timeModel=[_displayDateModel.time objectAtIndex:indexPath.row];
+    UILabel *titleLabel=[[UILabel alloc]initWithFrame:CGRectMake(10, 3, kSCREEN_WIDTH-100, 21)];
+    titleLabel.font=[UIFont systemFontOfSize:12];
+    titleLabel.text=[NSString stringWithFormat:@"%@-%@",timeModel.time1,timeModel.time2];
+    [cell.contentView addSubview:titleLabel];
+    
+    if ([titleLabel.text isEqualToString:self.userTimeString]) {
+        selectedButt.selected=YES;
+    }
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+}
+-(void)timeSelected:(UIButton*)butt
+{
+    
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

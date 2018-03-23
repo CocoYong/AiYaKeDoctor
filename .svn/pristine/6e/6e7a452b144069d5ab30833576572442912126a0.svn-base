@@ -1,0 +1,130 @@
+//
+//  NSDate+Extension.m
+//  WBCalendarView
+//
+//  Created by wbitos on 15/7/22.
+//  Copyright (c) 2015年 wbitos. All rights reserved.
+//
+
+#import "NSDate+Extension.h"
+
+@implementation NSDate (Extension)
+static NSCalendar      *_gregorianCalendar = nil;
+
++ (void)initialize {
+    _gregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+}
+
+- (WBGregorianDate)gDate {
+    @synchronized(_gregorianCalendar) {
+        WBGregorianDate gDate;
+        
+        NSDateComponents *comp = [_gregorianCalendar components:(NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond) fromDate:self];
+        
+        gDate.year = (SInt32)comp.year;
+        gDate.month = (SInt8)comp.month;
+        gDate.day = (SInt8)comp.day;
+        gDate.hour = (SInt8)comp.hour;
+        gDate.minute = (SInt8)comp.minute;
+        gDate.second = (double)comp.second;
+        
+        return gDate;
+    }
+}
+
++ (NSDate *)firstDateWithYear:(NSInteger)year month:(NSInteger)month {
+    WBGregorianDate gDate = {(SInt32)year, (SInt8)month, 1, 0, 0, 0};
+    return [self dateWithWBGregorianDate:gDate];
+}
+
++ (NSDate *)dateWithWBGregorianDate:(WBGregorianDate)gDate {
+    @synchronized(_gregorianCalendar) {
+        NSDateComponents *comp = [_gregorianCalendar components:(NSCalendarUnitYear | NSCalendarUnitMonth) fromDate:[NSDate date]];
+        
+        [comp setDay:gDate.day];
+        [comp setMonth:gDate.month];
+        [comp setYear:gDate.year];
+        [comp setHour:gDate.hour];
+        [comp setMinute:gDate.minute];
+        [comp setSecond:gDate.second];
+        
+        return [_gregorianCalendar dateFromComponents:comp];
+    }
+}
+
+- (NSInteger)weekday {
+    @synchronized(_gregorianCalendar) {
+        NSDateComponents *comps = [_gregorianCalendar components:NSCalendarUnitWeekday fromDate:self];
+        return [comps weekday];
+    }
+}
+
++ (NSInteger)daysInYear:(NSInteger)year month:(NSInteger)month {
+    NSInteger days = 30;
+    switch (month) {
+        case 1:
+        case 3:
+        case 5:
+        case 7:
+        case 8:
+        case 10:
+        case 12:
+            days = 31;
+            break;
+        case 2:
+        {
+            if ((year % 4==0 && year % 100!=0) || year % 400==0) {
+                days = 29;
+            }
+            else {
+                days = 28;
+            }
+        }
+            break;
+        default:
+        {
+            days = 30;
+        }
+            break;
+    }
+    return days;
+}
+
+- (WBGregorianDate)prevMonth {
+    WBGregorianDate gDate = [self gDate];
+    gDate.month --;
+    if (gDate.month == 12) {
+        gDate.year --;
+        gDate.month = 1;
+    }
+    return gDate;
+}
+
+- (WBGregorianDate)nextMonth {
+    WBGregorianDate gDate = [self gDate];
+    gDate.month ++;
+    if (gDate.month > 12) {
+        gDate.year ++;
+        gDate.month = 1;
+    }
+    return gDate;
+}
+
+- (NSDate *)prevMonthFirstDate {
+    WBGregorianDate gDate = [self prevMonth];
+    gDate.day = 1;
+    gDate.hour = 0;
+    gDate.minute = 0;
+    gDate.second = 0.0;
+    return [NSDate dateWithWBGregorianDate:gDate];
+}
+
+- (NSDate *)nextMonthFirstDate {
+    WBGregorianDate gDate = [self nextMonth];
+    gDate.day = 1;
+    gDate.hour = 0;
+    gDate.minute = 0;
+    gDate.second = 0.0;
+    return [NSDate dateWithWBGregorianDate:gDate];
+}
+@end

@@ -1,0 +1,41 @@
+//
+//  RegisterProtocalViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/21.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "RegisterProtocalViewController.h"
+#import <QuartzCore/QuartzCore.h>
+@interface RegisterProtocalViewController ()
+@property (weak, nonatomic) IBOutlet UIWebView *webView;
+
+@end
+
+@implementation RegisterProtocalViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    _webView.backgroundColor = [UIColor clearColor];
+    _webView.opaque = NO;
+    _webView.scrollView.backgroundColor = [UIColor blackColor];
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"protocal" ofType:@"html"];
+    NSLog(@"path====%@",path);
+    NSError *error;
+    NSString *htmlString=[[NSString alloc]initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
+    NSLog(@"error===%@,htmlSting====%@",error,htmlString);
+    [_webView  loadHTMLString:htmlString  baseURL:nil];
+}
+
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+- (IBAction)backButtonAction:(id)sender {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+
+@end

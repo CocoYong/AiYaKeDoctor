@@ -1,0 +1,179 @@
+//
+//  WBCalendarView.m
+//  WBCalendarView
+//
+//  Created by wbitos on 15/7/22.
+//  Copyright (c) 2015年 wbitos. All rights reserved.
+//
+
+#import "WBCalendarView.h"
+#import "NSDate+Extension.h"
+
+@interface WBCalendarView () <UIScrollViewDelegate>
+
+@property (nonatomic, weak) IBOutlet UIScrollView *scrollView;
+@property (nonatomic, weak) IBOutlet UILabel      *monthLabel;
+
+@property (nonatomic, strong) NSMutableArray *monthViews;
+@end
+
+@implementation WBCalendarView
+
+/*
+ // Only override drawRect: if you perform custom drawing.
+ // An empty implementation adversely affects performance during animation.
+ - (void)drawRect:(CGRect)rect {
+ // Drawing code
+ }
+ */
+
+- (void)setSelectedDate:(NSDate *)selectedDate {
+    _selectedDate = selectedDate;
+    
+    WBGregorianDate gDate = [selectedDate gDate];
+    WBGregorianDate gPrevMonth = [selectedDate prevMonth];
+    WBGregorianDate gNextMonth = [selectedDate nextMonth];
+    
+    CGFloat width = kSCREEN_WIDTH;
+    CGFloat height = self.scrollView.bounds.size.height;
+    
+    WBCalendarMonthView *monthView1 = self.monthViews[0];
+    [monthView1 setYear:gPrevMonth.year month:gPrevMonth.month];
+    monthView1.frame = CGRectMake(0, 0, width, height);
+   
+    
+    WBCalendarMonthView *monthView2 = self.monthViews[1];
+    [monthView2 setYear:gDate.year month:gDate.month];
+    monthView2.frame = CGRectMake(width, 0, width, height);
+  
+    
+    WBCalendarMonthView *monthView3 = self.monthViews[2];
+    [monthView3 setYear:gNextMonth.year month:gNextMonth.month];
+    monthView3.frame = CGRectMake(2 * width, 0, width, height);
+
+    
+    self.scrollView.contentOffset = CGPointMake(width, 0);
+    
+     if (self.monthViewDelegate && [self.monthViewDelegate respondsToSelector:@selector(calendarViewDidChangeToYear:month:)]) {
+        [self.monthViewDelegate calendarViewDidChangeToYear:gDate.year month:gDate.month];
+    }
+    self.monthLabel.text = [NSString stringWithFormat:@"%d年%02d月", (int)gDate.year, gDate.month];
+}
+
+- (NSMutableArray *)monthViews {
+    if (_monthViews == nil) {
+        self.scrollView.pagingEnabled = YES;
+        CGFloat width = kSCREEN_WIDTH;
+        CGFloat height = self.scrollView.bounds.size.height;
+        
+        NSMutableArray *monthViews = [NSMutableArray array];
+        for (NSInteger idx = 0; idx < 3; idx ++) {
+            WBCalendarMonthView *monthView = [[WBCalendarMonthView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
+            monthView.backgroundColor = [UIColor clearColor];
+            monthView.delegate = self.monthViewDelegate;
+            [self.scrollView addSubview:monthView];
+            [monthViews addObject:monthView];
+        }
+        _monthViews = monthViews;
+        self.scrollView.contentSize = CGSizeMake(width * 3, height);
+    }
+    return _monthViews;
+}
+- (void)adjustMonth {
+    CGFloat width = kSCREEN_WIDTH;
+    //MrZhang修改。。。
+    int page = floor((self.scrollView.contentOffset.x - width/ 2)/ width) + 1;
+//    NSLog(@"contentOffset==%@",NSStringFromCGPoint(self.scrollView.contentOffset));
+//    NSLog(@"%ld====Month",(long)page);
+    [self switchToPage:page];
+}
+
+- (void)switchToPage:(NSInteger)page {
+    CGFloat width = kSCREEN_WIDTH;
+    
+    BOOL changed = NO;
+    
+    switch (page) {
+        case 0:
+        {
+            changed = YES;
+            WBCalendarMonthView *lastMonthView = self.monthViews[2];
+            [self.monthViews removeObjectAtIndex:2];
+            [self.monthViews insertObject:lastMonthView atIndex:0];
+            
+            NSDate *currentSelectedDate = [_selectedDate prevMonthFirstDate];
+            WBGregorianDate prevGDate = [currentSelectedDate prevMonth];
+            [lastMonthView setYear:prevGDate.year month:prevGDate.month];
+            _selectedDate = currentSelectedDate;
+            [self updateMonthViewsFrame];
+            [self.scrollView setContentOffset:CGPointMake(width, 0) animated:NO];
+        }
+            break;
+        case 2:
+        {
+            changed = YES;
+            
+            WBCalendarMonthView *firstMonthView = self.monthViews[0];
+            [self.monthViews removeObjectAtIndex:0];
+            [self.monthViews addObject:firstMonthView];
+            
+            NSDate *currentSelectedDate = [_selectedDate nextMonthFirstDate];
+            WBGregorianDate nextGDate = [currentSelectedDate nextMonth];
+            [firstMonthView setYear:nextGDate.year month:nextGDate.month];
+            _selectedDate = currentSelectedDate;
+            
+            [self updateMonthViewsFrame];
+            [self.scrollView setContentOffset:CGPointMake(width, 0) animated:NO];
+        }
+            break;
+        default:
+            break;
+    }
+    
+    if (changed) {
+        WBGregorianDate gDate = [_selectedDate gDate];
+        if (self.monthViewDelegate && [self.monthViewDelegate respondsToSelector:@selector(calendarViewDidChangeToYear:month:)]) {
+            [self.monthViewDelegate calendarViewDidChangeToYear:gDate.year month:gDate.month];
+        }
+        self.monthLabel.text = [NSString stringWithFormat:@"%d年%02d月", (int)gDate.year, gDate.month];
+    }
+}
+
+- (void)updateMonthViewsFrame {
+    CGFloat width = kSCREEN_WIDTH;
+    CGFloat height = self.scrollView.bounds.size.height;
+    
+    for (NSInteger idx = 0; idx < self.monthViews.count; idx++) {
+        WBCalendarMonthView *monthView = self.monthViews[idx];
+        monthView.frame = CGRectMake(idx * width, 0, width, height);
+    }
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (!decelerate) {
+        [self adjustMonth];
+    }
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    [self adjustMonth];
+}
+
+- (void)reload {
+    for (NSInteger idx = 0; idx < self.monthViews.count; idx ++) {
+        WBCalendarMonthView *monthView = self.monthViews[idx];
+        [monthView setNeedsDisplay];
+    }
+}
+
+- (IBAction)prevMonthAction:(id)sender{
+    [self.scrollView setContentOffset:CGPointMake(0, 0) animated:YES];
+    [self switchToPage:0];
+}
+
+- (IBAction)nextMonthAction:(id)sender {
+    [self.scrollView setContentOffset:CGPointMake(2 * kSCREEN_WIDTH, 0) animated:YES];
+    [self switchToPage:2];
+}
+
+@end

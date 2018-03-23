@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7531" systemVersion="14E46" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="RefuseViewController">
+            <connections>
+                <outlet property="refuseTextView" destination="Onc-Od-lSW" id="6ch-Ip-fmT"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="请输入拒绝理由(非必填):" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gX0-Sz-YsJ">
+                    <rect key="frame" x="0.0" y="-21" width="42" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="21" id="6Xf-So-SIk"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <nil key="highlightedColor"/>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="6Xf-So-SIk"/>
+                        </mask>
+                    </variation>
+                    <variation key="heightClass=regular-widthClass=compact">
+                        <mask key="constraints">
+                            <include reference="6Xf-So-SIk"/>
+                        </mask>
+                    </variation>
+                </label>
+                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Onc-Od-lSW">
+                    <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="237" id="fAI-ZA-I9T"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.borderWidth">
+                            <integer key="value" value="1"/>
+                        </userDefinedRuntimeAttribute>
+                        <userDefinedRuntimeAttribute type="color" keyPath="layer.borderColor">
+                            <color key="value" red="0.64313725490196083" green="0.64313725490196083" blue="0.64313725490196083" alpha="1" colorSpace="calibratedRGB"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="fAI-ZA-I9T"/>
+                        </mask>
+                    </variation>
+                    <variation key="heightClass=regular-widthClass=compact">
+                        <mask key="constraints">
+                            <include reference="fAI-ZA-I9T"/>
+                        </mask>
+                    </variation>
+                    <connections>
+                        <outlet property="delegate" destination="-1" id="wOU-7H-puc"/>
+                    </connections>
+                </textView>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="Onc-Od-lSW" firstAttribute="trailing" secondItem="gX0-Sz-YsJ" secondAttribute="trailing" id="1u3-aP-GB4"/>
+                <constraint firstItem="Onc-Od-lSW" firstAttribute="leading" secondItem="gX0-Sz-YsJ" secondAttribute="leading" id="3Al-BC-QPC"/>
+                <constraint firstItem="gX0-Sz-YsJ" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="20" id="9oA-lk-qBU"/>
+                <constraint firstItem="gX0-Sz-YsJ" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="85" id="L9U-xG-gJx"/>
+                <constraint firstItem="Onc-Od-lSW" firstAttribute="top" secondItem="gX0-Sz-YsJ" secondAttribute="bottom" constant="28" id="Tjj-JB-GYa"/>
+                <constraint firstAttribute="trailing" secondItem="gX0-Sz-YsJ" secondAttribute="trailing" constant="20" id="faC-zX-4f4"/>
+            </constraints>
+            <variation key="default">
+                <mask key="subviews">
+                    <exclude reference="gX0-Sz-YsJ"/>
+                    <exclude reference="Onc-Od-lSW"/>
+                </mask>
+                <mask key="constraints">
+                    <exclude reference="9oA-lk-qBU"/>
+                    <exclude reference="L9U-xG-gJx"/>
+                    <exclude reference="faC-zX-4f4"/>
+                    <exclude reference="1u3-aP-GB4"/>
+                    <exclude reference="3Al-BC-QPC"/>
+                    <exclude reference="Tjj-JB-GYa"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=regular-widthClass=compact">
+                <mask key="subviews">
+                    <include reference="gX0-Sz-YsJ"/>
+                    <include reference="Onc-Od-lSW"/>
+                </mask>
+                <mask key="constraints">
+                    <include reference="9oA-lk-qBU"/>
+                    <include reference="L9U-xG-gJx"/>
+                    <include reference="faC-zX-4f4"/>
+                    <include reference="1u3-aP-GB4"/>
+                    <include reference="3Al-BC-QPC"/>
+                    <include reference="Tjj-JB-GYa"/>
+                </mask>
+            </variation>
+        </view>
+    </objects>
+</document>

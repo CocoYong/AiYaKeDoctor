@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7531" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="EditDoctorInfoController">
+            <connections>
+                <outlet property="baseTable" destination="1YB-Ij-Oj0" id="cZj-ZK-VVb"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="1YB-Ij-Oj0">
+                    <rect key="frame" x="24" y="-35" width="600" height="600"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <connections>
+                        <outlet property="dataSource" destination="-1" id="fYL-ZB-nPM"/>
+                        <outlet property="delegate" destination="-1" id="Xve-wW-dQ1"/>
+                    </connections>
+                </tableView>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="1YB-Ij-Oj0" secondAttribute="bottom" constant="80" id="VD7-vg-uQZ"/>
+                <constraint firstItem="1YB-Ij-Oj0" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="60" id="WNW-lg-mof"/>
+                <constraint firstItem="1YB-Ij-Oj0" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="dBD-ne-lzC"/>
+                <constraint firstAttribute="trailing" secondItem="1YB-Ij-Oj0" secondAttribute="trailing" id="q9X-oc-K4V"/>
+            </constraints>
+            <variation key="default">
+                <mask key="constraints">
+                    <exclude reference="VD7-vg-uQZ"/>
+                    <exclude reference="WNW-lg-mof"/>
+                    <exclude reference="dBD-ne-lzC"/>
+                    <exclude reference="q9X-oc-K4V"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=regular-widthClass=compact">
+                <mask key="constraints">
+                    <include reference="VD7-vg-uQZ"/>
+                    <include reference="WNW-lg-mof"/>
+                    <include reference="dBD-ne-lzC"/>
+                    <include reference="q9X-oc-K4V"/>
+                </mask>
+            </variation>
+        </view>
+    </objects>
+</document>

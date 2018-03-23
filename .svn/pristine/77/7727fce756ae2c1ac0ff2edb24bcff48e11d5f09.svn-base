@@ -1,0 +1,40 @@
+//
+//  YSProject-Prefix.pch
+//  YSProject
+//
+//  Created by cuiw on 15/5/26.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#ifndef YSProject_YSProject_Prefix_pch
+#define YSProject_YSProject_Prefix_pch
+
+// 类别
+#import "UIImage+Image.h"
+#import "NSString+File.h"
+#import "UIButton+Setting.h"
+#import "NSDate+Convenience.h"
+#import "NSDictionary+CWDictionary.h"
+#import "UIColor+CWColor.h"
+
+// 通用
+#import "Globals.h"
+#import "AppDefine.h"
+#import "NetDefine.h"
+#import "CWNSBlocks.h"
+#import "CWHttpRequest.h"
+#import "Reachability.h"
+#import "SVProgressHUD.h"
+#import "ShowViewCenter.h"
+#import "ShowViewCenterViewController.h"
+#import "CWTextField.h"
+#import "ValidationUtil.h"
+#import "CWNSFileUtil.h"
+#import "UserManager.h"
+#import <QuartzCore/QuartzCore.h>
+#import "UIViewController+MutableUseCategory.h"
+#import "MJRefresh.h"
+#import "UpdateUserData.h"
+#import "EMChatManagerDefs.h"
+#import "EaseMob.h"
+#endif

@@ -1,0 +1,45 @@
+//
+//  UpdateUserData.m
+//  Doctor
+//
+//  Created by MrZhang on 15/6/26.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "UpdateUserData.h"
+
+@implementation UpdateUserData
+
++(instancetype)shareInstance
+{
+    static UpdateUserData *updatUserData;
+    static  dispatch_once_t  onceToken;
+    dispatch_once(&onceToken, ^{
+        updatUserData=[[UpdateUserData alloc]init];
+    });
+    return updatUserData;
+}
+-(void)updateUserInfoSuccessBlock:(void(^)(NSInteger code,NSDictionary *data))success failBlock:(void(^)(NSInteger code,NSString *errorString))fail
+{
+    if ([Reachability checkNetCanUse]) {
+        CWHttpRequest *_loginRequest = [[CWHttpRequest alloc] init];
+        [UserManager logout];
+        NSDictionary *jsonDictionary = @{@"username": [[CWNSFileUtil sharedInstance] getNSModelFromUserDefaultsWithKey:@"loginName"], @"password":[[CWNSFileUtil sharedInstance] getNSModelFromUserDefaultsWithKey:@"password"], @"userType": @"1"};
+         [_loginRequest JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, Login_URL] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            NSLog(@"登录接口成功=======%@", responseObject);
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+            if ([code integerValue]==0) {
+                [[CWNSFileUtil sharedInstance] setNSModelToUserDefaults:responseObject withKey:@"userData"];
+                [[CWNSFileUtil sharedInstance] setNSModelToUserDefaults:[responseObject objectForKey:@"SessionID"] withKey:@"SessionID"];
+            }
+            NSLog(@"respinseDic===%@",[responseObject objectForKey:@"text"]);
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"登录接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+
+@end

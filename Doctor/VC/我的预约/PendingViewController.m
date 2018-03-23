@@ -1,0 +1,338 @@
+//
+//  PendingViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/25.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "PendingViewController.h"
+#import "PendingTableViewCell.h"
+#import "PendingDetailViewController.h"
+#import "TabBarViewController.h"
+#import <QuartzCore/QuartzCore.h>
+#import "SearchViewController.h"
+@interface PendingViewController ()
+{
+    UIButton * leftButton;
+    UIButton *rightButton;
+    CWHttpRequest *request;
+    NSMutableArray *dataArray;
+    NSDictionary *statusDic;
+    
+    //leftTable rightTable
+    NSDictionary *leftDic;
+    NSDictionary *rightDic;
+    NSArray *leftShowArray;
+    NSArray *rightShowArray;
+    
+    //moreData
+    NSInteger morePage;
+    NSInteger totalDataNum;
+
+}
+@property (weak, nonatomic) IBOutlet UITableView *contentTableView;
+@property (weak, nonatomic) IBOutlet UITableView *leftTable;
+@property (weak, nonatomic) IBOutlet UITableView *rightTable;
+@property(nonatomic,strong) NSString *searchType;
+@end
+
+@implementation PendingViewController
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        
+    }
+    return self;
+}
+
+- (void)viewDidLayoutSubviews {
+
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"我的预约"];
+    [self createTableHeaderView];
+    [self initOriginalData];
+    [self setttingUIStyle];
+    [self getServiceDataFromServiceType:@"0" andPage:1 AndName:nil anduIsComent:2 anddIsComment:2 andRefresh:YES];
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+    self.automaticallyAdjustsScrollViewInsets=NO;
+    
+}
+-(void)initOriginalData
+{
+    morePage=1;
+    self.searchType=@"0";
+    self.leftTable.hidden=YES;
+    self.rightTable.hidden=YES;
+    statusDic=@{@"-99":@"已取消",@"-2":@"已拒绝",@"-1":@"已拒绝",@"0":@"待确认",@"1":@"已确认",@"3":@"已确认",@"99":@"已完成",@"2":@"待确认"};
+    leftShowArray=@[@"全部时段",@"近一周",@"近一月",@"近一年"];
+    NSArray *leftValueArray=@[@"0",@"1",@"2",@"3"];
+    leftDic=[NSDictionary dictionaryWithObjects:leftValueArray forKeys:leftShowArray];
+    rightShowArray=@[@"全部状态",@"待确认",@"已确认",@"已拒绝",@"已完成",@"已取消"];
+    NSArray *rightValueArray=@[@"0",@"4",@"5",@"6",@"7",@"8"];
+    rightDic=[NSDictionary dictionaryWithObjects:rightValueArray forKeys:rightShowArray];
+}
+-(void)setttingUIStyle
+{
+    self.leftTable.layer.cornerRadius=5.0f;
+    self.leftTable.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    self.leftTable.layer.borderWidth=1.0f;
+    self.rightTable.layer.cornerRadius=5.0f;
+    self.rightTable.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    self.rightTable.layer.borderWidth=1.0f;
+    
+    leftButton.layer.cornerRadius=5.0f;
+    leftButton.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    leftButton.layer.borderWidth=1.0f;
+    
+    rightButton.layer.cornerRadius=5.0f;
+    rightButton.layer.borderColor=[UIColor lightGrayColor].CGColor;
+    rightButton.layer.borderWidth=1.0f;
+    
+    [self.contentTableView addLegendHeaderWithRefreshingTarget:self refreshingAction:@selector(refreshData)];
+    [self.contentTableView addLegendFooterWithRefreshingTarget:self refreshingAction:@selector(loadMoreData)];
+    
+    UIButton *searchButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    searchButt.frame=CGRectMake(kSCREEN_WIDTH-30, 20, 20, 20);
+    [searchButt setImage:[UIImage imageNamed:@"fangdajing"] forState:UIControlStateNormal];
+    [searchButt addTarget:self action:@selector(searchAction) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:searchButt];
+    [self.view bringSubviewToFront:searchButt];
+}
+-(void)searchAction
+{
+    SearchViewController *searchController=[[SearchViewController alloc]init];
+    [self.navigationController pushViewController:searchController animated:YES];
+}
+-(void)refreshData
+{
+    if (self.searchType) {
+      [self getServiceDataFromServiceType:self.searchType andPage:1 AndName:nil anduIsComent:2 anddIsComment:2 andRefresh:YES];
+    }else
+    {
+     [self getServiceDataFromServiceType:@"0" andPage:1 AndName:nil anduIsComent:2 anddIsComment:2 andRefresh:YES];
+    }
+}
+-(void)loadMoreData
+{
+    morePage++;
+    if (dataArray.count==totalDataNum){
+     [self.contentTableView.footer noticeNoMoreData];
+    }else
+    {
+     [self getServiceDataFromServiceType:self.searchType andPage:morePage AndName:nil anduIsComent:2 anddIsComment:2 andRefresh:NO];
+    }
+}
+-(void)createTableHeaderView
+{
+    UIView *_headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 60, kSCREEN_WIDTH, 50)];
+    _headerView.backgroundColor = [CWNSFileUtil colorWithHexString:@"#e5e5e5"];
+    [self.view addSubview:_headerView];
+    
+    leftButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [leftButton setFrame:CGRectMake(10, 10, (kSCREEN_WIDTH-30)/2, 30)];
+    [leftButton setBackgroundColor:[UIColor whiteColor]];
+    [leftButton setImageEdgeInsets:UIEdgeInsetsMake(0, (kSCREEN_WIDTH-30)/2-21, 0, 0)];
+    [leftButton setImage:[UIImage imageNamed:@"0_57"] forState:UIControlStateNormal];
+    [leftButton setTitle:@"全部时段" forState:UIControlStateNormal];
+    [leftButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    leftButton.titleLabel.font = [UIFont systemFontOfSize:12];
+    leftButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    [leftButton addTarget:self action:@selector(menuButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+    [_headerView addSubview:leftButton];
+    
+    rightButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [rightButton setFrame:CGRectMake((kSCREEN_WIDTH-30)/2+20, 10, (kSCREEN_WIDTH-30)/2, 30)];
+    [rightButton setBackgroundColor:[UIColor whiteColor]];
+    [rightButton setImageEdgeInsets:UIEdgeInsetsMake(0, (kSCREEN_WIDTH-30)/2-21, 0, 0)];
+    [rightButton setImage:[UIImage imageNamed:@"0_57"] forState:UIControlStateNormal];
+    [rightButton setTitle:@"全部状态" forState:UIControlStateNormal];
+    [rightButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    rightButton.titleLabel.font = [UIFont systemFontOfSize:12];
+    rightButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    [rightButton addTarget:self action:@selector(menuButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+    [_headerView addSubview:rightButton];
+}
+-(void)getOrderNewNum
+{
+    if ([Reachability checkNetCanUse]){
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+        NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary = @{@"SessionID": sessionID};
+         NSLog(@"jsonDictionary====%@",jsonDictionary);
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, OrderNewNum] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject){
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+               NSLog(@"sessionID😳😳😳😳😳😳😳😳😳😳=======%@",[responseObject valueForKeyWithOutNSNull:@"SessionID"]);
+            if ([code integerValue]==0){
+                UserManager *userManager=[UserManager currentUserManager];
+                userManager.sessionID=[responseObject objectForKey:@"SessionID"];
+                
+                [userManager synchronize];
+                UILabel *tempLabel=(UILabel*)[[[(TabBarViewController*)self.tabBarController  tabbarImageView] viewWithTag:20] viewWithTag:21];
+                tempLabel.text= [NSString stringWithFormat:@"%@",[[responseObject objectForKey:@"data"] objectForKey:@"val"]];;
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"登录接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+-(void)getServiceDataFromServiceType:(NSString*)type andPage:(NSInteger)page AndName:(NSString*)name anduIsComent:(NSInteger)userComent anddIsComment:(NSInteger)docotorComent andRefresh:(BOOL)refresh
+{
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+        NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary = @{@"stype":type, @"SessionID": sessionID,@"name":name==nil?@"":name,@"page":[NSNumber numberWithInteger:page],@"size":@"5"};
+        NSLog(@"jsonDictionary====%@",jsonDictionary);
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, SearchOrder] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+               NSLog(@"sessionID😳😳😳😳😳😳😳😳😳😳=======%@",[responseObject valueForKeyWithOutNSNull:@"SessionID"]);
+            NSLog(@"responsObject====%@",responseObject);
+            if ([code integerValue]==0){
+                UserManager *userManager=[UserManager currentUserManager];
+                userManager.sessionID=[responseObject objectForKey:@"SessionID"];
+                
+                [userManager synchronize];
+                totalDataNum=[[[responseObject objectForKey:@"data"] objectForKey:@"total"] integerValue];
+                if (refresh) {
+                    [dataArray removeAllObjects];
+                    dataArray=[[[responseObject objectForKey:@"data"] objectForKey:@"rs"] mutableCopy];
+                     morePage=1;
+                    [self.contentTableView.header endRefreshing];
+                    [self.contentTableView.footer resetNoMoreData];
+                }else
+                {
+                    [dataArray addObjectsFromArray:[[responseObject objectForKey:@"data"] objectForKey:@"rs"]];
+                    [self.contentTableView.footer endRefreshing];
+                }
+                [self.contentTableView reloadData];
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"登录接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.tabBarController.tabBar.hidden=YES;
+    [(TabBarViewController*)self.tabBarController  tabbarImageView].hidden=NO;
+}
+- (void)menuButtonAction:(UIButton *)button {
+     button.selected=!button.selected;
+    if (button==leftButton) {
+        if (button.selected) {
+         self.leftTable.hidden=NO;
+         self.rightTable.hidden=YES;
+        }else
+        {
+         self.leftTable.hidden=YES;
+        }
+    }else
+    {
+        if (button.selected) {
+            self.rightTable.hidden=NO;
+            self.leftTable.hidden=YES;
+        }else{
+         self.rightTable.hidden=YES;
+        }
+    }
+}
+#pragma mark------tableViewDelegate--------------
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (tableView==_leftTable) {
+        return leftShowArray.count;
+    }else if (tableView==_rightTable)
+    {
+        return rightShowArray.count;
+    }
+    return dataArray.count;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView==_contentTableView) {
+        static NSString *cellIdentity = @"CELL";
+        PendingTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentity];
+        if (!cell) {
+            [tableView registerNib:[UINib nibWithNibName:@"PendingTableViewCell" bundle:nil] forCellReuseIdentifier:cellIdentity];
+            cell = [tableView dequeueReusableCellWithIdentifier:cellIdentity];
+        }
+        [cell  configeCellData:[dataArray objectAtIndex:indexPath.row] andSatusDic:statusDic];
+        return cell;
+   
+    }else
+    {
+      static NSString *reusedIndentifier=@"smallCell";
+        UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:reusedIndentifier];
+        if (!cell) {
+            cell=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reusedIndentifier];
+        }
+        if (tableView==_leftTable) {
+            cell.textLabel.text=[leftShowArray objectAtIndex:indexPath.row];
+        }else
+        {
+           cell.textLabel.text=[rightShowArray objectAtIndex:indexPath.row];
+        }
+        return cell;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView==_contentTableView) {
+     return 150.0f;
+    }else
+    {
+     return 30.0f;
+    }
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView==_contentTableView) {
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+        PendingDetailViewController *pendingDetailVC = [[PendingDetailViewController alloc] init];
+        pendingDetailVC.hidesBottomBarWhenPushed=YES;
+        pendingDetailVC.recieveDic=[dataArray objectAtIndex:indexPath.row];
+        [self.navigationController pushViewController:pendingDetailVC animated:YES];
+    }else
+    {
+        if (tableView==_leftTable) {
+            [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            [leftButton setTitle:[leftShowArray objectAtIndex:indexPath.row] forState:UIControlStateNormal];
+            morePage=1;
+            self.searchType=[leftDic objectForKey:[leftShowArray objectAtIndex:indexPath.row]];
+            [self getServiceDataFromServiceType:[leftDic objectForKey:[leftShowArray objectAtIndex:indexPath.row]] andPage:1 AndName:nil anduIsComent:2 anddIsComment:2 andRefresh:YES];
+            leftButton.selected=NO;
+            self.leftTable.hidden=YES;
+        }else
+        {
+             [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            [rightButton setTitle:[rightShowArray objectAtIndex:indexPath.row] forState:UIControlStateNormal];
+            self.searchType=[rightDic objectForKey:[rightShowArray objectAtIndex:indexPath.row]];
+            morePage=1;
+            [self getServiceDataFromServiceType:[rightDic objectForKey:[rightShowArray objectAtIndex:indexPath.row]] andPage:1 AndName:nil anduIsComent:2 anddIsComment:2 andRefresh:YES];
+            rightButton.selected=NO;
+            self.rightTable.hidden=YES;
+        }
+    }
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+@end

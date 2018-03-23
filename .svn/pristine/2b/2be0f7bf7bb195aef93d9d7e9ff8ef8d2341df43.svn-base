@@ -1,0 +1,210 @@
+//
+//  SettingDateViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/6/4.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "SettingDateViewController.h"
+#import "SettingTimeViewController.h"
+#import "UserModel.h"
+#import "WorkTimeModel.h"
+#import "TimeModel.h"
+@interface SettingDateViewController ()
+{
+    UserModel *userModel;
+    CWHttpRequest *request;
+    NSMutableArray *dataArray;
+}
+@property (weak, nonatomic) IBOutlet UITableView *baseTable;
+
+@end
+
+@implementation SettingDateViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"设置预约时间"];
+    [self addBackButt];
+    userModel=[UserManager currentUserManager].user;
+    dataArray=[userModel.workTimeList mutableCopy];
+    [self creatTableHeaderView];
+
+    
+}
+#pragma mark----tableViewDelegate-------
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return dataArray.count;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    WorkTimeModel *workTimeModel=[dataArray objectAtIndex:indexPath.row];
+    return (workTimeModel.time.count+1)*30+30;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *reuseIdentifier=@"cellIdentifier";
+    UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    if (!cell) {
+        cell=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+    }else
+    {
+        for (id view in cell.contentView.subviews) {
+            [view removeFromSuperview];
+        }
+    }
+    cell.backgroundColor=[UIColor hexColor:@"#eeeeee"];
+    [self configerTableViewCell:cell withIndexPath:indexPath];
+    cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    tableView.tableFooterView=[UIView new];
+    return cell;
+}
+-(void)configerTableViewCell:(UITableViewCell*)cell withIndexPath:(NSIndexPath*)indexPath
+{
+    WorkTimeModel *workTimeModel=[dataArray objectAtIndex:indexPath.row];
+    NSDateFormatter *formatter=[[NSDateFormatter alloc]init];
+    formatter.dateFormat=@"yyyy-MM-dd";
+    NSDate *date1=[formatter dateFromString:workTimeModel.date1];
+    NSDate *date2=[formatter dateFromString:workTimeModel.date2];
+    [formatter setLocale:[NSLocale currentLocale]];
+    [formatter setDateFormat:@"yyyy年MM月dd日"];
+    NSString *date11= [formatter  stringFromDate:date1];
+    NSString *date22= [formatter  stringFromDate:date2];
+    
+    
+    UIView *backView=[[UIView alloc]initWithFrame:CGRectMake(10, 5, kSCREEN_WIDTH-20, (workTimeModel.time.count+1)*30+20)];
+    backView.tag=(indexPath.row+1)*100;
+    backView.layer.cornerRadius=5.0f;
+    backView.backgroundColor=[UIColor whiteColor];
+    backView.autoresizesSubviews=YES;
+    [cell.contentView addSubview:backView];
+    
+    UIButton *towardsButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    towardsButt.tag=indexPath.row*2;
+    towardsButt.frame=CGRectMake(CGRectGetMaxX(backView.frame)-50, CGRectGetMidY(backView.frame)-15, 30, 30);
+
+    [towardsButt setImage:[UIImage imageNamed:@"0_07"] forState:UIControlStateNormal];
+    [towardsButt setImage:[UIImage imageNamed:@"0_09"] forState:UIControlStateSelected];
+    [towardsButt addTarget:self action:@selector(towardsButtAction:) forControlEvents:UIControlEventTouchUpInside];
+    [backView addSubview:towardsButt];
+    
+    
+    UIButton *deleteButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    deleteButt.frame=CGRectMake(kSCREEN_WIDTH-100, 5, 100, CGRectGetHeight(backView.frame));
+    [deleteButt setTitle:@"删除" forState:UIControlStateNormal];
+    [deleteButt setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    deleteButt.tag=indexPath.row*2+1;
+    deleteButt.hidden=YES;
+    [deleteButt setImage:[UIImage imageNamed:@"0_26"] forState:UIControlStateNormal];
+    [deleteButt addTarget:self action:@selector(deleteCellWithIndex:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.contentView addSubview:deleteButt];
+    
+    
+    UILabel *yearLabel=[[UILabel alloc]initWithFrame:CGRectMake(10, 5, kSCREEN_WIDTH-20, 20)];
+    yearLabel.text=[NSString stringWithFormat:@"%@-%@",date11,date22];
+    [backView addSubview:yearLabel];
+    
+    UILabel *shiduanLabel=[[UILabel alloc]initWithFrame:CGRectMake(10, 35, 40, 20)];
+    shiduanLabel.text=@"时段:";
+    [backView addSubview:shiduanLabel];
+    
+    for (int i=0; i<workTimeModel.time.count; i++) {
+        TimeModel *timeModel=[workTimeModel.time objectAtIndex:i];
+        UILabel *timeLabel=[[UILabel alloc]init];
+        timeLabel.frame=CGRectMake(50, (5+25)*i+35, kSCREEN_WIDTH-70, 20);
+        timeLabel.text=[NSString stringWithFormat:@"%@-%@",timeModel.time1,timeModel.time2];
+        [backView addSubview:timeLabel];
+    }
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    SettingTimeViewController *settingTimeController=[[SettingTimeViewController alloc]init];
+    settingTimeController.editOrNot=YES;
+    settingTimeController.recieveModel=[userModel.workTimeList objectAtIndex:indexPath.row];
+    [self.navigationController pushViewController:settingTimeController animated:YES];
+}
+-(void)towardsButtAction:(UIButton*)towardsButt
+{
+    towardsButt.selected=!towardsButt.selected;
+    UITableViewCell *cell=[_baseTable cellForRowAtIndexPath:[NSIndexPath indexPathForItem:towardsButt.tag/2 inSection:0]];
+    UIView *backView=[cell.contentView viewWithTag:(towardsButt.tag/2+1)*100];
+    if (towardsButt.selected) {
+        backView.frame=CGRectMake(backView.frame.origin.x, backView.frame.origin.y, backView.frame.size.width-70, backView.frame.size.height);
+        [cell.contentView viewWithTag:towardsButt.tag+1].hidden=NO;
+        towardsButt.frame=CGRectMake(CGRectGetMaxX(backView.frame)-50, CGRectGetMidY(backView.frame)-15, 30, 30);
+    }else
+    {
+        backView.frame=CGRectMake(backView.frame.origin.x, backView.frame.origin.y, backView.frame.size.width+70, backView.frame.size.height);
+        towardsButt.frame=CGRectMake(CGRectGetMaxX(backView.frame)-50, CGRectGetMidY(backView.frame)-15, 30, 30);
+        [cell.contentView viewWithTag:towardsButt.tag+1].hidden=YES;
+    }
+}
+-(void)deleteCellWithIndex:(UIButton*)butt
+{
+    WorkTimeModel *workDateModel=[dataArray objectAtIndex:butt.tag/2];
+    NSDateFormatter *formatter=[[NSDateFormatter alloc]init];
+    formatter.dateFormat=@"yyyy-MM-dd";
+    NSDate  *date1=[formatter dateFromString:workDateModel.date1];
+    NSDate  *date2=[formatter dateFromString:workDateModel.date2];
+    [self deleteWorkTime:date1 andDate:date2];
+    [dataArray removeObjectAtIndex:butt.tag/2];
+}
+
+- (void)deleteWorkTime:(NSDate*)date1 andDate:(NSDate*)date2{
+    if ([Reachability checkNetCanUse]) {
+        if (!request) {
+            request = [[CWHttpRequest alloc] init];
+        }
+        [SVProgressHUD showWithStatus:@"正在请求数据..." maskType:SVProgressHUDMaskTypeClear];
+        NSString *sessionID=[UserManager currentUserManager].sessionID;
+        NSDictionary *jsonDictionary = @{@"date1":date1,@"date2":date2,@"SessionID":sessionID};
+        [request JSONRequestOperationWithURL:[NSString stringWithFormat:@"%@%@", HOST_URL, DeletWorkTime] path:nil parameters:jsonDictionary successBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseObject) {
+            NSLog(@"删除工作时间接口成功%@", responseObject);
+            [SVProgressHUD dismiss];
+            NSString *code = [responseObject valueForKeyWithOutNSNull:@"code"];
+            [UserManager currentUserManager].sessionID=[responseObject objectForKey:@"SessionID"];
+            if ([code integerValue]==0){
+                [[UpdateUserData shareInstance] updateUserInfo];
+                [self.baseTable reloadData];
+            }else
+            {
+                [SVProgressHUD showErrorWithStatus:[responseObject valueForKeyWithOutNSNull:@"text"]];
+            }
+        } failBlock:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseObject) {
+            NSLog(@"删除工作时间接口失败=======%@", responseObject);
+            [ShowViewCenter netError];
+        }];
+    } else {
+        [ShowViewCenter netNotAvailable];
+    }
+}
+
+-(void)creatTableHeaderView
+{
+    UIView *headerView=[[UIView alloc]initWithFrame:CGRectMake(0, 0, kSCREEN_WIDTH, 44)];
+    headerView.backgroundColor=[UIColor hexColor:@"#eeeeee"];
+    
+    UIButton *addTimeButt=[UIButton buttonWithType:UIButtonTypeCustom];
+    addTimeButt.frame=CGRectMake(20, 7, 150, 30);
+    [addTimeButt setTitle:@"新建工作时间" forState:UIControlStateNormal];
+    [addTimeButt setTitleColor:[CWNSFileUtil colorWithHexString:@"#3c6e87"] forState:UIControlStateNormal];
+    [addTimeButt setImage:[UIImage imageNamed:@"0_20"] forState:UIControlStateNormal];
+    [addTimeButt addTarget:self action:@selector(addWorkTime) forControlEvents:UIControlEventTouchUpInside];
+    [headerView addSubview:addTimeButt];
+    self.baseTable.tableHeaderView=headerView;
+}
+-(void)addWorkTime
+{
+    SettingTimeViewController *settingTimeController=[[SettingTimeViewController alloc]init];
+    settingTimeController.editOrNot=NO;
+    [self.navigationController pushViewController:settingTimeController animated:YES];
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+@end

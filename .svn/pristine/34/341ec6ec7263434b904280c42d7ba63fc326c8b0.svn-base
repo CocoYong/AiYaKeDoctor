@@ -1,0 +1,15 @@
+//
+//  SettingTimeViewController.h
+//  YSProject
+//
+//  Created by cuiw on 15/6/4.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "WorkTimeModel.h"
+@interface SettingTimeViewController : UIViewController
+@property(nonatomic,assign) BOOL editOrNot;
+@property(nonatomic,strong) NSDictionary *dictionary;
+@property(nonatomic,strong) NSMutableArray *recieveDataArray;
+@end

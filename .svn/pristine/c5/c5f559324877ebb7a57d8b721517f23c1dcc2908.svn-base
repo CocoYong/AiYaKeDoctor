@@ -1,0 +1,36 @@
+//
+//  RegisterProtocalViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/21.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "RegisterProtocalViewController.h"
+#import <QuartzCore/QuartzCore.h>
+@interface RegisterProtocalViewController ()
+@property (weak, nonatomic) IBOutlet UITextView *mainTextView;
+
+@end
+
+@implementation RegisterProtocalViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+//    self.mainTextView.layer.borderWidth=1.0f;
+//    self.mainTextView.layer.borderColor=[UIColor lightGrayColor].CGColor;
+//    self.mainTextView.layer.cornerRadius=5.0f;
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (IBAction)backButtonAction:(id)sender {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+
+@end

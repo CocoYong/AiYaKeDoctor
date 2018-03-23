@@ -1,0 +1,25 @@
+//
+//  NSDictionary+CWDictionary.m
+//  
+//
+//  Created by cuiw on 12/10/13.
+//
+//
+
+#import "NSDictionary+CWDictionary.h"
+
+@implementation NSDictionary (CWDictionary)
+
+- (id)valueForKeyWithOutNSNull:(NSString *)key {
+    id value = [self valueForKey:key];
+    return [value class] != [NSNull class] ? value : nil;
+}
+
++ (NSMutableDictionary *)parametersDictionary {
+    NSMutableDictionary *parametersDictionary = [[NSMutableDictionary alloc] init];
+    [parametersDictionary setObject:@"" forKey:@"AccessKey"];
+    [parametersDictionary setObject:@"" forKey:@"SessionID"];
+    return parametersDictionary;
+}
+
+@end

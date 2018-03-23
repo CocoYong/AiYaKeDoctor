@@ -1,0 +1,223 @@
+//
+//  EvaluateViewController.m
+//  YSProject
+//
+//  Created by cuiw on 15/5/31.
+//  Copyright (c) 2015年 cuiw. All rights reserved.
+//
+
+#import "EvaluateViewController.h"
+#import "MyEvaluatPatientCell.h"
+#import "MyRecieveEvaluateCell.h"
+#import "OneSpecialCell.h"
+
+#import "TabBarViewController.h"
+@interface EvaluateViewController ()
+{
+    UIView *_headerView;
+    UIButton *_leftButton;
+    UIButton *_rightButton;
+    UIButton *detailButt;
+    
+}
+@property(nonatomic,strong)NSDictionary *userDic;
+@property(nonatomic,strong)MyRecieveEvaluateCell *evaluatHeightCell;
+@end
+
+@implementation EvaluateViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self creatNavgationBarWithTitle:@"患者评价"];
+    [self addBackButt];
+    self.edgesForExtendedLayout=UIRectEdgeNone;
+    _userDic=[[CWNSFileUtil sharedInstance] getNSModelFromUserDefaultsWithKey:@"userData"];
+    [_contentTableView registerNib:[UINib nibWithNibName:@"MyRecieveEvaluateCell" bundle:nil] forCellReuseIdentifier:@"MyRecieveEvaluateCell"];
+    [_contentTableView registerNib:[UINib nibWithNibName:@"MyEvaluatPatientCell" bundle:nil] forCellReuseIdentifier:@"MyEvaluatPatientCell"];
+    [_contentTableView registerNib:[UINib nibWithNibName:@"OneSpecialCell" bundle:nil] forCellReuseIdentifier:@"OneSpecialCell"];
+    self.evaluatHeightCell=[_contentTableView dequeueReusableCellWithIdentifier:@"MyRecieveEvaluateCell"];
+    [self creatTableHeaderView];
+    _leftButton.selected=YES;
+    _rightButton.selected=NO;
+  
+}
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [(TabBarViewController*)self.tabBarController  tabbarImageView].hidden=YES;
+}
+-(void)creatTableHeaderView
+{
+    _headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kSCREEN_WIDTH, 50)];
+    _headerView.backgroundColor = [CWNSFileUtil colorWithHexString:@"#eeeeee"];
+    
+    _leftButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_leftButton setTitle:@"我收到的评价(101)" forState:UIControlStateNormal];
+    _leftButton.frame = CGRectMake(0, 10, kSCREEN_WIDTH/2, 30);
+    _leftButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [_leftButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [_leftButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
+    [_leftButton addTarget:self action:@selector(segmentButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+    UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(kSCREEN_WIDTH/2 - 1, 15, 1, 20)];
+    lineView.backgroundColor = [UIColor grayColor];
+    
+    _rightButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_rightButton setTitle:@"我给出的评价(110)" forState:UIControlStateNormal];
+    _rightButton.frame = CGRectMake(kSCREEN_WIDTH/2, 10, kSCREEN_WIDTH/2 - 1, 30);
+    _rightButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [_rightButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [_rightButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
+    [_rightButton addTarget:self action:@selector(segmentButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+    [_headerView addSubview:_leftButton];
+    [_headerView addSubview:_rightButton];
+    [_headerView addSubview:lineView];
+    
+    
+    _contentTableView.tableHeaderView = _headerView;
+}
+- (void)segmentButtonAction:(UIButton *)button {
+    if (button==_leftButton) {
+        if (!button.selected) {
+          button.selected=!button.selected;
+            _rightButton.selected=NO;
+            [self.contentTableView reloadData];
+        }
+    }if (button==_rightButton) {
+        if (!button.selected) {
+            button.selected=!button.selected;
+            _leftButton.selected=NO;
+            [self.contentTableView reloadData];
+        }
+    }
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 4;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (_leftButton.selected){
+        if (indexPath.row==0) {
+            if (_expand) {
+                OneSpecialCell*  cell = [tableView dequeueReusableCellWithIdentifier:@"OneSpecialCell"];
+                [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+                cell.controller=self;
+                [cell configeCellDataWith:_userDic];
+                return cell;
+            }else
+            {
+                UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:@"cell"];
+                if (!cell) {
+                    cell=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
+                }
+                cell.backgroundColor=[CWNSFileUtil colorWithHexString:@"#eeeeee"];
+                UILabel *mainLabel=[[UILabel alloc]initWithFrame:CGRectMake(10, 10, 56, 13)];
+                mainLabel.text=@"总体评价:";
+                mainLabel.font=[UIFont systemFontOfSize:13];
+                [cell.contentView addSubview:mainLabel];
+                UIImageView *imageView=[[UIImageView alloc]initWithFrame:CGRectMake(77, 10, 85, 13)];
+                imageView.image=[UIImage imageNamed:[NSString stringWithFormat:@"star%@",[_userDic objectForKey:@"totalGrade"]]];
+                [cell.contentView addSubview:imageView];
+                UILabel *scoreLabel=[[UILabel alloc]initWithFrame:CGRectMake(170, 10, 40, 13)];
+                scoreLabel.text=@"4分";
+                [cell.contentView addSubview:scoreLabel];
+                
+                
+                
+                detailButt=[UIButton buttonWithType:UIButtonTypeCustom];
+                detailButt.frame=CGRectMake(kSCREEN_WIDTH-70, 10, 50, 21);
+                [detailButt setBackgroundImage:[UIImage imageNamed:@"0_152"] forState:UIControlStateNormal];
+                [detailButt setBackgroundImage:[UIImage imageNamed:@"0_152"] forState:UIControlStateSelected];
+                [detailButt setTitle:@"详情" forState:UIControlStateNormal];
+                detailButt.titleLabel.font=[UIFont systemFontOfSize:14];
+                [detailButt addTarget:self action:@selector(expandButtAction:) forControlEvents:UIControlEventTouchUpInside];
+                [cell.contentView addSubview:detailButt];
+                return cell;
+            }
+        }else
+        {
+            MyRecieveEvaluateCell*  cell = [tableView dequeueReusableCellWithIdentifier:@"MyRecieveEvaluateCell"];
+            cell.expandButt.tag=indexPath.row;
+//            [cell.expandButt addTarget:self action:@selector(cellExpandButtAction:) forControlEvents:UIControlEventTouchUpInside];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            return cell;
+        }
+     }else {
+         MyEvaluatPatientCell * cell = [tableView dequeueReusableCellWithIdentifier:@"MyEvaluatPatientCell"];
+              [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        return cell;
+    }
+    return nil;
+}
+//- (CGFloat)tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath
+//{
+//    return 150;
+//}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (_leftButton.selected) {
+        if (indexPath.row==0) {
+            if (_expand) {
+                return 103;
+            }else
+            {
+             return 33;
+            }
+        }else
+        {
+//           
+//             NSString *str=@"点撒解放啦舒服极了诗酒风流睡觉了开房间诗酒风流时间到了附近阿拉斯加法拉盛积分克拉斯解放啦就是浪费接撒列举法酸辣粉水电费骄傲了解放啦诗酒风流骄傲了开房间卡拉胶弗利萨家乐福骄傲了SD放假啊酸辣粉加拉斯街坊邻居阿斯利康解放啦十几分拉屎都是积分垃圾发电刻录机阿斯利康都放假了卡机费老大劲爱上了附近拉屎撒娇的反垃圾林凤娇爱爱了束带结发拉屎";
+//               CGFloat height= [_evaluatHeightCell countSelfHeight:str];
+//             return height;
+//            }else
+//            {
+             return 250;
+//            }
+        }
+    } else {
+        return 128;
+    }
+}
+- (void)cellExpandButtAction:(UIButton *)sender{
+    sender.selected=!sender.selected;
+    MyRecieveEvaluateCell *cell=(MyRecieveEvaluateCell*)[_contentTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:sender.tag inSection:0]];
+    if (sender.selected) {
+        cell.fuwuTaiduLabel.hidden=NO;
+        cell.fuwuTaiduFen.hidden=NO;
+        cell.zhuanyeShuipinLabel.hidden=NO;
+        cell.zhuanyeShuiPinFen.hidden=NO;
+        cell.jiuyiHuanJingLabel.hidden=NO;
+        cell.jiuyiHuanJingFen.hidden=NO;
+        cell.expandDetailLabel.hidden=NO;
+        cell.lineView.hidden=NO;
+        cell.noExpandDetailLabel.hidden=YES;
+    }else
+    {
+        cell.fuwuTaiduLabel.hidden=YES;
+        cell.fuwuTaiduFen.hidden=YES;
+        cell.zhuanyeShuipinLabel.hidden=YES;
+        cell.zhuanyeShuiPinFen.hidden=YES;
+        cell.jiuyiHuanJingLabel.hidden=YES;
+        cell.jiuyiHuanJingFen.hidden=YES;
+        cell.expandDetailLabel.hidden=YES;
+        cell.lineView.hidden=YES;
+        cell.noExpandDetailLabel.hidden=NO;
+    }
+}
+-(void)expandButtAction:(UIButton*)butt
+{
+    self.expand=YES;
+    [self.contentTableView reloadData];
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+//    if (!_flag) {
+//        [self.navigationController pushViewController:notificationDetailVC animated:YES];
+//    } else {
+//        [self.navigationController pushViewController:announcementDetailVC animated:YES];
+//    }
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+@end

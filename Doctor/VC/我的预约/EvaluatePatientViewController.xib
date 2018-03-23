@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="EvaluatePatientViewController">
+            <connections>
+                <outlet property="evaluatePatient" destination="agl-so-zCc" id="6Z3-Wp-usa"/>
+                <outlet property="starView" destination="psr-n7-i4y" id="NM0-xa-Wny"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="我对患者的评价:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Ux-Ds-q0t">
+                    <rect key="frame" x="20" y="85" width="335" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="21" id="U9f-E9-PdR"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <nil key="highlightedColor"/>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="U9f-E9-PdR"/>
+                        </mask>
+                    </variation>
+                    <variation key="heightClass=regular-widthClass=compact">
+                        <mask key="constraints">
+                            <include reference="U9f-E9-PdR"/>
+                        </mask>
+                    </variation>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="点评患者:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="agl-so-zCc">
+                    <rect key="frame" x="20" y="155" width="74" height="21"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="总体评价:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YVp-wD-bIW">
+                    <rect key="frame" x="20" y="120" width="74" height="21"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="psr-n7-i4y" customClass="HCSStarRatingView">
+                    <rect key="frame" x="102" y="120" width="200" height="21"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <color key="tintColor" red="0.97647058819999999" green="0.62352941179999999" blue="0.12549019610000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="200" id="E31-5a-hfF"/>
+                    </constraints>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="maximumValue">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                        <userDefinedRuntimeAttribute type="number" keyPath="minimumValue">
+                            <integer key="value" value="0"/>
+                        </userDefinedRuntimeAttribute>
+                        <userDefinedRuntimeAttribute type="number" keyPath="spacing">
+                            <real key="value" value="10"/>
+                        </userDefinedRuntimeAttribute>
+                        <userDefinedRuntimeAttribute type="number" keyPath="value">
+                            <real key="value" value="4"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="E31-5a-hfF"/>
+                        </mask>
+                    </variation>
+                    <variation key="heightClass=regular-widthClass=compact">
+                        <mask key="constraints">
+                            <include reference="E31-5a-hfF"/>
+                        </mask>
+                    </variation>
+                </view>
+            </subviews>
+            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <constraints>
+                <constraint firstItem="4Ux-Ds-q0t" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="85" id="1zD-f2-sWB"/>
+                <constraint firstItem="4Ux-Ds-q0t" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="20" id="9jb-6M-xxr"/>
+                <constraint firstItem="4Ux-Ds-q0t" firstAttribute="leading" secondItem="YVp-wD-bIW" secondAttribute="leading" id="GJY-KV-jRr"/>
+                <constraint firstItem="YVp-wD-bIW" firstAttribute="height" secondItem="psr-n7-i4y" secondAttribute="height" id="Lvh-nW-F1G"/>
+                <constraint firstItem="YVp-wD-bIW" firstAttribute="top" secondItem="4Ux-Ds-q0t" secondAttribute="bottom" constant="14" id="Mo3-dx-AKQ"/>
+                <constraint firstItem="YVp-wD-bIW" firstAttribute="bottom" secondItem="psr-n7-i4y" secondAttribute="bottom" id="Ont-HI-bZ6"/>
+                <constraint firstItem="agl-so-zCc" firstAttribute="top" secondItem="YVp-wD-bIW" secondAttribute="bottom" constant="14" id="RHj-9o-Qqa"/>
+                <constraint firstAttribute="trailing" secondItem="4Ux-Ds-q0t" secondAttribute="trailing" constant="20" id="UMW-zd-MLa"/>
+                <constraint firstItem="psr-n7-i4y" firstAttribute="leading" secondItem="YVp-wD-bIW" secondAttribute="trailing" constant="8" id="WRr-AY-ObA"/>
+                <constraint firstItem="4Ux-Ds-q0t" firstAttribute="height" secondItem="YVp-wD-bIW" secondAttribute="height" id="Yue-FC-0Yh"/>
+                <constraint firstItem="4Ux-Ds-q0t" firstAttribute="leading" secondItem="agl-so-zCc" secondAttribute="leading" id="eSS-Mc-QHP"/>
+                <constraint firstItem="4Ux-Ds-q0t" firstAttribute="height" secondItem="agl-so-zCc" secondAttribute="height" id="glm-al-Yar"/>
+                <constraint firstAttribute="trailing" secondItem="psr-n7-i4y" secondAttribute="trailing" constant="264" id="jMP-2v-4OY"/>
+            </constraints>
+            <variation key="default">
+                <mask key="subviews">
+                    <exclude reference="4Ux-Ds-q0t"/>
+                    <exclude reference="agl-so-zCc"/>
+                    <exclude reference="YVp-wD-bIW"/>
+                    <exclude reference="psr-n7-i4y"/>
+                </mask>
+                <mask key="constraints">
+                    <exclude reference="1zD-f2-sWB"/>
+                    <exclude reference="9jb-6M-xxr"/>
+                    <exclude reference="GJY-KV-jRr"/>
+                    <exclude reference="UMW-zd-MLa"/>
+                    <exclude reference="Yue-FC-0Yh"/>
+                    <exclude reference="eSS-Mc-QHP"/>
+                    <exclude reference="glm-al-Yar"/>
+                    <exclude reference="Lvh-nW-F1G"/>
+                    <exclude reference="Mo3-dx-AKQ"/>
+                    <exclude reference="Ont-HI-bZ6"/>
+                    <exclude reference="RHj-9o-Qqa"/>
+                    <exclude reference="WRr-AY-ObA"/>
+                    <exclude reference="jMP-2v-4OY"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=regular-widthClass=compact">
+                <mask key="subviews">
+                    <include reference="4Ux-Ds-q0t"/>
+                    <include reference="agl-so-zCc"/>
+                    <include reference="YVp-wD-bIW"/>
+                    <include reference="psr-n7-i4y"/>
+                </mask>
+                <mask key="constraints">
+                    <include reference="1zD-f2-sWB"/>
+                    <include reference="9jb-6M-xxr"/>
+                    <include reference="GJY-KV-jRr"/>
+                    <include reference="UMW-zd-MLa"/>
+                    <include reference="Yue-FC-0Yh"/>
+                    <include reference="eSS-Mc-QHP"/>
+                    <include reference="glm-al-Yar"/>
+                    <include reference="Lvh-nW-F1G"/>
+                    <include reference="Mo3-dx-AKQ"/>
+                    <include reference="Ont-HI-bZ6"/>
+                    <include reference="RHj-9o-Qqa"/>
+                    <include reference="WRr-AY-ObA"/>
+                    <exclude reference="jMP-2v-4OY"/>
+                </mask>
+            </variation>
+        </view>
+    </objects>
+</document>
